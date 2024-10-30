@@ -11,3 +11,4 @@ freedesktop-desktop-entry = "0.7.5"
 nucleo = "0.5.0"
 tokio = { version = "1.40.0", features = ["full"] }
 derive_more = { version = "1", features = ["full"] }
+walkdir = "2"

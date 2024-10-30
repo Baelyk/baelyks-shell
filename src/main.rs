@@ -29,6 +29,27 @@ fn inject_entries(injector: nucleo::Injector<String>) {
     });
 }
 
+fn inject_paths(injector: nucleo::Injector<String>) {
+    walkdir::WalkDir::new("/home/baelyk/")
+        .into_iter()
+        .filter_map(|entry| {
+            let Ok(entry) = entry else {
+                return None;
+            };
+            if entry.file_type().is_file() {
+                return Some(entry);
+            }
+            return None;
+        })
+        .for_each(|entry| {
+            let info = format!("{}", entry.path().display());
+            injector.push(info, |info, cols| {
+                cols[0] = info.clone().into();
+            });
+        });
+    println!("injected {} paths!", injector.injected_items());
+}
+
 struct State {
     input: String,
     searcher: SearcherState,
@@ -89,7 +110,8 @@ impl State {
                 searcher::Event::Initialized((searcher, injector)) => {
                     self.searcher = SearcherState::Initialized(searcher);
                     // TODO: Not this
-                    inject_entries(injector);
+                    //inject_entries(injector.clone());
+                    inject_paths(injector);
                 }
                 searcher::Event::FoundResults(results) => {
                     self.results = results;
@@ -107,6 +129,19 @@ impl State {
 }
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
+    //let count = walkdir::WalkDir::new("/home/baelyk/")
+    //.into_iter()
+    //.filter_map(|entry| {
+    //let Ok(entry) = entry else {
+    //return None;
+    //};
+    //if entry.file_type().is_file() {
+    //return Some(entry);
+    //}
+    //return None;
+    //})
+    //.count();
+    //println!("Found {count} files");
     iced::application("A cool counter", State::update, State::view)
         .subscription(State::subscription)
         .run_with(|| (State::default(), text_input::focus("searchbar")))?;

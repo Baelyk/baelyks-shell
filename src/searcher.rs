@@ -21,10 +21,13 @@ pub fn nucleo() -> impl Stream<Item = Event> {
             .send(Event::Initialized((Searcher(sender), nucleo.injector())))
             .await;
 
+        let mut initialized = false;
+
         loop {
             select! {
                 message = receiver.select_next_some() => {
                     println!("Received {:?}", message);
+                    initialized = true;
                     match message {
                         Message::UpdatePattern(pattern) => {
                             nucleo.pattern.reparse(
@@ -39,17 +42,23 @@ pub fn nucleo() -> impl Stream<Item = Event> {
                     }
                 }
                 _ = notifier.select_next_some() => {
+                    if !initialized {
+                        continue;
+                    }
                     println!("Searching...");
-                    let status = nucleo.tick(10);
+                    let status = dbg!(nucleo.tick(10));
 
                     if status.changed {
                         let snapshot = nucleo.snapshot();
-                        let range = 0..snapshot.matched_item_count();
+                        println!("Found {} results", snapshot.matched_item_count());
+                        let items = std::cmp::min(100, snapshot.matched_item_count());
+                        let range = 0..items;
                         let results: Vec<String> = snapshot
                             .matched_items(range)
                             .map(|item| format!("{:?}", item.matcher_columns))
                             .collect();
 
+                        println!("Sending {} results", results.len());
                         let _ = output.send(Event::FoundResults(results)).await;
                     }
                 }
