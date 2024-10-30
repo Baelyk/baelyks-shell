@@ -10,42 +10,68 @@
     flake-utils.url = "github:numtide/flake-utils";
   };
 
-  outputs = { self, fenix, nixpkgs, flake-utils}:
-  let
-      name = "faro";
-      displayname = "Faro";
+  outputs = {
+    self,
+    fenix,
+    nixpkgs,
+    flake-utils,
+  }: let
+    name = "faro";
+    displayname = "Faro";
   in
-    flake-utils.lib.eachDefaultSystem(system:
-    let
+    flake-utils.lib.eachDefaultSystem (system: let
       pkgs = nixpkgs.legacyPackages.${system};
       toolchain = fenix.packages.${system}.stable.toolchain;
     in {
-      packages.default = (pkgs.makeRustPlatform {
-        cargo = toolchain;
-        rustc = toolchain;
-      }).buildRustPackage {
-        pname = name;
-        version = "0.1.0";
+      packages.default =
+        (pkgs.makeRustPlatform {
+          cargo = toolchain;
+          rustc = toolchain;
+        })
+        .buildRustPackage {
+          pname = name;
+          version = "0.1.0";
 
-        src = ./.;
+          src = ./.;
 
-        cargoLock.lockFile = ./Cargo.lock;
-      };
+          cargoLock.lockFile = ./Cargo.lock;
+        };
 
-      devShells.default = pkgs.mkShell {
-        packages = with pkgs; [
+      devShells.default = pkgs.mkShell rec {
+        # For Iced https://github.com/iced-rs/iced/blob/master/DEPENDENCIES.md
+        buildInputs = with pkgs; [
+          expat
+          fontconfig
+          freetype
+          freetype.dev
+          libGL
+          pkg-config
+          xorg.libX11
+          xorg.libXcursor
+          xorg.libXi
+          xorg.libXrandr
+          wayland
+          libxkbcommon
+        ];
+        LD_LIBRARY_PATH = builtins.foldl' (a: b: "${a}:${b}/lib") "${pkgs.vulkan-loader}/lib" buildInputs;
+
+        packages = [
           toolchain
         ];
 
         shellHook = ''
-            echo $(cargo --version)
+          echo $(cargo --version)
 
-            exec fish
+          exec fish
         '';
       };
     })
     // flake-utils.lib.eachDefaultSystemPassThrough (system: {
-      nixosModules.default = { config, lib, ... }: let
+      nixosModules.default = {
+        config,
+        lib,
+        ...
+      }: let
         cfg = config.services.${name};
       in {
         options = {
@@ -61,10 +87,9 @@
           };
         };
 
-        config = lib.mkIf cfg.enable ({
-          home.packages = [ cfg.package ];
-        });
+        config = lib.mkIf cfg.enable {
+          home.packages = [cfg.package];
+        };
       };
     });
 }
-
