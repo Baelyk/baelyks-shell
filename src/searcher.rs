@@ -1,6 +1,64 @@
 use derive_more::Debug;
+use freedesktop_desktop_entry::DesktopEntry;
 use iced::futures::channel::mpsc;
 use iced::futures::{select, SinkExt, Stream, StreamExt};
+use walkdir::DirEntry;
+
+use crate::LOCALES;
+
+#[derive(Debug, Clone)]
+pub enum SearchItem {
+    DesktopEntry(DesktopEntry<'static>),
+    DirEntry(DirEntry),
+}
+
+impl std::fmt::Display for SearchItem {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            SearchItem::DesktopEntry(entry) => write!(
+                f,
+                "{}",
+                entry
+                    .name(&LOCALES)
+                    .or(entry.generic_name(&LOCALES))
+                    .unwrap_or_default()
+            ),
+            SearchItem::DirEntry(entry) => write!(f, "{}", entry.path().display()),
+        }
+    }
+}
+
+impl SearchItem {
+    pub(crate) fn search_data(&self) -> nucleo::Utf32String {
+        match self {
+            SearchItem::DesktopEntry(entry) => {
+                let name = entry.name(&LOCALES).unwrap_or_default();
+                let comment = entry.comment(&LOCALES).unwrap_or_default();
+                let generic_name = entry.generic_name(&LOCALES).unwrap_or_default();
+                format!("{name} {comment} {generic_name}").into()
+            }
+            SearchItem::DirEntry(entry) => entry.path().to_string_lossy().into(),
+        }
+    }
+
+    pub(crate) fn open(&self) -> Result<(), Box<dyn std::error::Error>> {
+        match self {
+            Self::DesktopEntry(entry) => {
+                std::process::Command::new("sh")
+                    .arg("-c")
+                    .args(entry.parse_exec()?)
+                    .spawn()?;
+            }
+            Self::DirEntry(entry) => {
+                std::process::Command::new("xdg-open")
+                    .arg(entry.path())
+                    .spawn()?;
+            }
+        }
+
+        Ok(())
+    }
+}
 
 pub fn nucleo() -> impl Stream<Item = Event> {
     iced::stream::channel(100, |mut output| async move {
@@ -10,7 +68,7 @@ pub fn nucleo() -> impl Stream<Item = Event> {
         let notify = std::sync::Arc::new(move || {
             let _ = iced::futures::executor::block_on(notify_sender.clone().send(()));
         });
-        let mut nucleo: nucleo::Nucleo<String> =
+        let mut nucleo: nucleo::Nucleo<SearchItem> =
             nucleo::Nucleo::new(nucleo::Config::DEFAULT, notify, None, 1);
 
         // Create the channel to communicate with the GUI
@@ -46,16 +104,16 @@ pub fn nucleo() -> impl Stream<Item = Event> {
                         continue;
                     }
                     println!("Searching...");
-                    let status = dbg!(nucleo.tick(10));
+                    let status = dbg!(nucleo.tick(5));
 
                     if status.changed {
                         let snapshot = nucleo.snapshot();
                         println!("Found {} results", snapshot.matched_item_count());
-                        let items = std::cmp::min(100, snapshot.matched_item_count());
+                        let items = std::cmp::min(20, snapshot.matched_item_count());
                         let range = 0..items;
-                        let results: Vec<String> = snapshot
+                        let results: Vec<SearchItem> = snapshot
                             .matched_items(range)
-                            .map(|item| format!("{:?}", item.matcher_columns))
+                            .map(|item| item.data.clone())
                             .collect();
 
                         println!("Sending {} results", results.len());
@@ -70,9 +128,8 @@ pub fn nucleo() -> impl Stream<Item = Event> {
 #[derive(Debug, Clone)]
 pub enum Event {
     #[debug("Initialized(Searcher, Injector)")]
-    Initialized((Searcher, nucleo::Injector<String>)),
-    FoundResults(Vec<String>),
-    Testing(String),
+    Initialized((Searcher, nucleo::Injector<SearchItem>)),
+    FoundResults(Vec<SearchItem>),
 }
 
 #[derive(Debug, Clone)]

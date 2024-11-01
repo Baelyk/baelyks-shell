@@ -1045,6 +1045,7 @@ dependencies = [
  "derive_more",
  "freedesktop-desktop-entry",
  "iced",
+ "lazy_static",
  "nucleo",
  "tokio",
  "walkdir",
