@@ -57,7 +57,6 @@ struct State {
     searcher: SearcherState,
     results: Vec<searcher::SearchItem>,
     selected: usize,
-    window_id: Option<window::Id>,
 }
 
 enum SearcherState {
@@ -72,7 +71,6 @@ impl Default for State {
             searcher: SearcherState::Unitialized,
             results: vec![],
             selected: 0,
-            window_id: None,
         }
     }
 }
@@ -91,7 +89,7 @@ pub enum Message {
 }
 
 impl State {
-    fn view(&self, _: window::Id) -> iced::widget::Column<Message> {
+    fn view(&self) -> iced::widget::Column<Message> {
         let search_bar = text_input("Search...", &self.input)
             .on_input(Message::ContentChanged)
             .on_submit(Message::OpenSelected)
@@ -143,13 +141,7 @@ impl State {
                 }
                 iced::Task::none()
             }
-            Message::RequestClose => match self.window_id {
-                Some(_id) => {
-                    // TODO: Just close window, don't exit
-                    iced::exit()
-                }
-                None => iced::Task::none(),
-            },
+            Message::RequestClose => iced::exit(),
             Message::SelectUp => {
                 self.selected = self.selected.saturating_sub(1);
                 iced::Task::none()
@@ -194,18 +186,9 @@ impl State {
 }
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-    iced::daemon("A cool counter", State::update, State::view)
+    iced::application("A cool counter", State::update, State::view)
         .subscription(State::subscription)
-        .run_with(|| {
-            let mut state = State::default();
-            let (id, window_task) = window::open(window::Settings::default());
-            state.window_id = Some(id);
-            let tasks = [
-                window_task.map(Message::TaskWindowOpen),
-                text_input::focus("searchbar"),
-            ];
-            (state, iced::Task::batch(tasks))
-        })?;
+        .run_with(|| (State::default(), text_input::focus("searchbar")))?;
 
     Ok(())
 }
