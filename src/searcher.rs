@@ -28,6 +28,13 @@ impl std::fmt::Display for SearchItem {
     }
 }
 
+#[derive(Debug, Clone)]
+pub(crate) enum Icon {
+    Svg(std::path::PathBuf),
+    Raster(std::path::PathBuf),
+    None,
+}
+
 impl SearchItem {
     pub(crate) fn search_data(&self) -> nucleo::Utf32String {
         match self {
@@ -57,6 +64,42 @@ impl SearchItem {
         }
 
         Ok(())
+    }
+
+    pub(crate) fn icon(&self) -> Icon {
+        // TODO: Theme settings?
+        let theme = "Gruvbox-Plus-Dark";
+
+        let name = match self {
+            Self::DesktopEntry(entry) => entry.icon().unwrap_or(""),
+            Self::DirEntry(entry) => {
+                if let Some(mime) = mime_guess::from_path(entry.path()).first() {
+                    &mime.essence_str().replace("/", "-")
+                } else {
+                    "application-blank"
+                }
+            }
+        };
+
+        if let Some(path) = freedesktop_icons::lookup(name)
+            .with_cache()
+            .force_svg()
+            .with_theme(theme)
+            .find()
+        {
+            return Icon::Svg(path);
+        }
+
+        if let Some(path) = freedesktop_icons::lookup(name)
+            .with_cache()
+            .with_size(100)
+            .with_theme(theme)
+            .find()
+        {
+            return Icon::Raster(path);
+        }
+
+        Icon::None
     }
 }
 

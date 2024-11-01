@@ -2,8 +2,7 @@ use derive_more::Debug;
 use freedesktop_desktop_entry::DesktopEntry;
 use iced::{
     keyboard::{key, on_key_press, on_key_release},
-    widget::{column, text_input},
-    window, Element, Subscription,
+    widget, window, Element, Subscription,
 };
 use searcher::SearchItem;
 
@@ -89,8 +88,10 @@ pub enum Message {
 }
 
 impl State {
-    fn view(&self) -> iced::widget::Column<Message> {
-        let search_bar = text_input("Search...", &self.input)
+    fn view(&self) -> widget::Column<Message> {
+        const ROW_HEIGHT: f32 = 30.0;
+        const ICON_SIZE: iced::Length = iced::Length::Fixed(ROW_HEIGHT * 0.8);
+        let search_bar = widget::text_input("Search...", &self.input)
             .on_input(Message::ContentChanged)
             .on_submit(Message::OpenSelected)
             .id("searchbar");
@@ -105,14 +106,30 @@ impl State {
                         } else {
                             iced::color!(0x000000)
                         };
-                        iced::widget::text(result.to_string()).color(color)
+                        let icon: Element<Message> = match dbg!(result.icon()) {
+                            searcher::Icon::Svg(path) => {
+                                widget::svg(path).width(ICON_SIZE).height(ICON_SIZE).into()
+                            }
+                            searcher::Icon::Raster(path) => widget::image(path)
+                                .content_fit(iced::ContentFit::ScaleDown)
+                                .width(ICON_SIZE)
+                                .height(ICON_SIZE)
+                                .into(),
+                            searcher::Icon::None => widget::Space::new(ICON_SIZE, ICON_SIZE).into(),
+                        };
+                        let name = iced::widget::text(result.to_string()).color(color);
+                        widget::row![icon, name]
+                            .height(iced::Length::Fixed(ROW_HEIGHT))
+                            .width(iced::Length::Fill)
+                            .spacing(iced::Pixels(ROW_HEIGHT / 2.0))
+                            .wrap()
                     })
                     .map(Element::from),
             )
             .spacing(10),
         )
         .height(iced::Fill);
-        column![search_bar, results]
+        widget::column![search_bar, results]
     }
 
     fn update(&mut self, message: Message) -> iced::Task<Message> {
@@ -188,7 +205,7 @@ impl State {
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     iced::application("A cool counter", State::update, State::view)
         .subscription(State::subscription)
-        .run_with(|| (State::default(), text_input::focus("searchbar")))?;
+        .run_with(|| (State::default(), widget::text_input::focus("searchbar")))?;
 
     Ok(())
 }
