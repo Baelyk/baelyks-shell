@@ -2,9 +2,10 @@ use chrono::Local;
 use iced::{
     Element, Length, Subscription, Task, Theme,
     widget::{self, Row, button, center_y, mouse_area, row, text},
+    window,
 };
 use iced_layershell::{
-    Settings, application, reexport::Anchor, settings::LayerShellSettings, to_layer_message,
+    Settings, daemon, reexport::Anchor, settings::LayerShellSettings, to_layer_message,
 };
 use log::{debug, trace, warn};
 
@@ -28,15 +29,16 @@ const MEDIUM: f32 = 24.0;
 const BIG: f32 = 36.0;
 
 pub fn run() -> Result<(), iced_layershell::Error> {
-    application(State::default, State::namespace, State::update, State::view)
+    daemon(State::default, State::namespace, State::update, State::view)
         .subscription(State::subscription)
         .style(State::style)
         .theme(State::theme)
         .settings(Settings {
             layer_settings: LayerShellSettings {
-                anchor: Anchor::Top,
-                size: Some((2880, HEIGHT)),
+                anchor: Anchor::Top | Anchor::Left | Anchor::Right,
+                size: Some((0, HEIGHT)),
                 exclusive_zone: HEIGHT as i32,
+                start_mode: iced_layershell::settings::StartMode::AllScreens,
                 ..Default::default()
             },
             default_font: iced::Font::with_name("JetBrainsMono Nerd Font"),
@@ -252,7 +254,7 @@ impl State {
         )
     }
 
-    fn view(&self) -> Element<Message> {
+    fn view(&self, _: window::Id) -> Element<Message> {
         let left = row![self.workspaces()];
 
         let right = Row::new()
@@ -392,7 +394,7 @@ impl State {
         }
     }
 
-    fn theme(&self) -> Theme {
+    fn theme(&self, _: window::Id) -> Theme {
         iced::Theme::custom(
             "Gruvbox Dark".to_string(),
             iced::theme::Palette {
