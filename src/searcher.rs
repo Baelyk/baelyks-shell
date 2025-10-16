@@ -71,7 +71,7 @@ impl SearchItem {
         let theme = "Gruvbox-Plus-Dark";
 
         let name = match self {
-            Self::DesktopEntry(entry) => entry.icon().unwrap_or(""),
+            Self::DesktopEntry(entry) => entry.icon().unwrap_or(&*entry.appid),
             Self::DirEntry(entry) => {
                 if let Some(mime) = mime_guess::from_path(entry.path()).first() {
                     &mime.essence_str().replace("/", "-")
@@ -83,10 +83,12 @@ impl SearchItem {
 
         if let Some(path) = freedesktop_icons::lookup(name)
             .with_cache()
+            .with_size(64)
             .force_svg()
             .with_theme(theme)
             .find()
         {
+            println!("Found svg {} for {}", path.display(), self);
             return Icon::Svg(path);
         }
 
@@ -96,8 +98,11 @@ impl SearchItem {
             .with_theme(theme)
             .find()
         {
+            println!("Found raster {} for {}", path.display(), self);
             return Icon::Raster(path);
         }
+
+        println!("No icon found (searched {}) for {:#?}", name, self);
 
         Icon::None
     }

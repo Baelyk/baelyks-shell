@@ -56,6 +56,7 @@ struct State {
     searcher: SearcherState,
     results: Vec<searcher::SearchItem>,
     selected: usize,
+    theme: iced::Theme,
 }
 
 enum SearcherState {
@@ -65,11 +66,20 @@ enum SearcherState {
 
 impl Default for State {
     fn default() -> Self {
+        let theme = iced::Theme::custom(
+            "Gruvbox Dark".into(),
+            iced::theme::Palette {
+                text: iced::color!(0xebdbb2),
+                ..iced::theme::Palette::GRUVBOX_DARK
+            },
+        );
+
         State {
             input: String::new(),
             searcher: SearcherState::Unitialized,
             results: vec![],
             selected: 0,
+            theme,
         }
     }
 }
@@ -87,13 +97,17 @@ pub enum Message {
     TaskWindowClose,
 }
 
+pub const SIZE_SMALL: f32 = SIZE_MEDIUM / 2.0;
+pub const SIZE_MEDIUM: f32 = 35.0;
+
 impl State {
     fn view(&self) -> widget::Column<Message> {
-        const ROW_HEIGHT: f32 = 30.0;
-        const ICON_SIZE: iced::Length = iced::Length::Fixed(ROW_HEIGHT * 0.8);
+        const TEXT_SIZE: f32 = SIZE_MEDIUM;
+        const ICON_SIZE: f32 = TEXT_SIZE * 1.2;
         let search_bar = widget::text_input("Search...", &self.input)
             .on_input(Message::ContentChanged)
             .on_submit(Message::OpenSelected)
+            .size(SIZE_MEDIUM)
             .id("searchbar");
         let results = iced::widget::scrollable(
             iced::widget::column(
@@ -101,15 +115,14 @@ impl State {
                     .iter()
                     .enumerate()
                     .map(|(i, result)| {
-                        let color = if i == self.selected {
-                            iced::color!(0xff0000)
-                        } else {
-                            iced::color!(0x000000)
-                        };
-                        let icon: Element<Message> = match dbg!(result.icon()) {
-                            searcher::Icon::Svg(path) => {
-                                widget::svg(path).width(ICON_SIZE).height(ICON_SIZE).into()
-                            }
+                        let icon: Element<Message> = match result.icon() {
+                            searcher::Icon::Svg(path) => widget::svg(path)
+                                .width(ICON_SIZE)
+                                .height(ICON_SIZE)
+                                //.style(|_, _| widget::svg::Style {
+                                //color: Some(self.theme.palette().background),
+                                //})
+                                .into(),
                             searcher::Icon::Raster(path) => widget::image(path)
                                 .content_fit(iced::ContentFit::ScaleDown)
                                 .width(ICON_SIZE)
@@ -117,12 +130,28 @@ impl State {
                                 .into(),
                             searcher::Icon::None => widget::Space::new(ICON_SIZE, ICON_SIZE).into(),
                         };
-                        let name = iced::widget::text(result.to_string()).color(color);
-                        widget::row![icon, name]
-                            .height(iced::Length::Fixed(ROW_HEIGHT))
+                        //let icon = widget::Container::new(icon)
+                        //.style(move |_| {
+                        //widget::container::background(self.theme.palette().background)
+                        //})
+                        //.height(iced::Length::Shrink)
+                        //.width(iced::Length::Shrink);
+                        let name = iced::widget::text(result.to_string()).size(TEXT_SIZE);
+                        let row = widget::row![icon, name]
+                            .height(iced::Length::Shrink)
                             .width(iced::Length::Fill)
-                            .spacing(iced::Pixels(ROW_HEIGHT / 2.0))
-                            .wrap()
+                            .padding([0.0, SIZE_SMALL])
+                            .spacing(SIZE_SMALL)
+                            .wrap();
+
+                        let background = if i == self.selected {
+                            self.theme.palette().primary
+                        } else {
+                            self.theme.palette().background
+                        };
+                        let container = widget::Container::new(row)
+                            .style(move |_| widget::container::background(background));
+                        container
                     })
                     .map(Element::from),
             )
@@ -164,7 +193,7 @@ impl State {
                 iced::Task::none()
             }
             Message::SelectDown => {
-                self.selected = std::cmp::min(self.selected + 1, self.results.len());
+                self.selected = std::cmp::min(self.selected + 1, self.results.len() - 1);
                 iced::Task::none()
             }
             Message::OpenSelected => {
@@ -200,10 +229,15 @@ impl State {
         ];
         Subscription::batch(subscriptions)
     }
+
+    fn theme(&self) -> iced::Theme {
+        self.theme.clone()
+    }
 }
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     iced::application("A cool counter", State::update, State::view)
+        .theme(State::theme)
         .subscription(State::subscription)
         .run_with(|| (State::default(), widget::text_input::focus("searchbar")))?;
 
