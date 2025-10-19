@@ -139,8 +139,8 @@ impl State {
         });
 
         let content = column![row![icon, header].width(Length::Fill)]
-            .push_maybe(body)
-            .push_maybe(actions)
+            .push(body)
+            .push(actions)
             .spacing(SMALL);
 
         let urgency = notification.urgency;

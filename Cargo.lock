@@ -383,7 +383,7 @@ dependencies = [
  "chrono",
  "dirs",
  "fern",
- "freedesktop-icons 0.4.0",
+ "freedesktop-icons",
  "iced",
  "iced_layershell",
  "image",
@@ -407,7 +407,7 @@ dependencies = [
  "dirs",
  "fern",
  "freedesktop-desktop-entry",
- "freedesktop-icons 0.2.6",
+ "freedesktop-icons",
  "iced",
  "iced_layershell",
  "image",
@@ -791,26 +791,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "const-random"
-version = "0.1.18"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "87e00182fe74b066627d63b85fd550ac2998d4b0bd86bfed477a0ae4c7c71359"
-dependencies = [
- "const-random-macro",
-]
-
-[[package]]
-name = "const-random-macro"
-version = "0.1.16"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f9d839f2a20b0aee515dc581a6172f2321f96cab76c1a38a4c584a194955390e"
-dependencies = [
- "getrandom 0.2.16",
- "once_cell",
- "tiny-keccak",
-]
-
-[[package]]
 name = "convert_case"
 version = "0.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1096,15 +1076,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "330c60081dcc4c72131f8eb70510f1ac07223e5d4163db481a04a0befcffa412"
 dependencies = [
  "libloading",
-]
-
-[[package]]
-name = "dlv-list"
-version = "0.5.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "442039f5147480ba31067cb00ada1adae6892028e40e45fc5de7b7df6dcc1b5f"
-dependencies = [
- "const-random",
 ]
 
 [[package]]
@@ -1464,21 +1435,8 @@ dependencies = [
 
 [[package]]
 name = "freedesktop-icons"
-version = "0.2.6"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a8ef34245e0540c9a3ce7a28340b98d2c12b75da0d446da4e8224923fcaa0c16"
-dependencies = [
- "dirs",
- "once_cell",
- "rust-ini",
- "thiserror 1.0.69",
- "xdg 2.5.2",
-]
-
-[[package]]
-name = "freedesktop-icons"
 version = "0.4.0"
-source = "git+https://github.com/baelyk/freedesktop-icons.git#97c665da51eb242bbb9173e5d3e2426bac8d68e3"
+source = "git+https://github.com/baelyk/freedesktop-icons.git#ffd663e9f616e6d46d0bee2482e013c24647fb65"
 dependencies = [
  "dirs",
  "ini_core",
@@ -1528,7 +1486,6 @@ dependencies = [
  "futures-core",
  "futures-task",
  "futures-util",
- "num_cpus",
 ]
 
 [[package]]
@@ -1767,12 +1724,6 @@ dependencies = [
 
 [[package]]
 name = "hashbrown"
-version = "0.14.5"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e5274423e17b7c9fc20b6e7e208532f9b19825d82dfd615708b70edd83df41f1"
-
-[[package]]
-name = "hashbrown"
 version = "0.15.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9229cfe53dfd69f0609a49f65461bd93001ea1ef889cd5529dd176593f5338a1"
@@ -1837,7 +1788,7 @@ dependencies = [
 [[package]]
 name = "iced"
 version = "0.14.0-dev"
-source = "git+https://github.com/iced-rs/iced.git#bfc27e4691875840010e3d1e282b8e26b821c569"
+source = "git+https://github.com/iced-rs/iced.git?rev=0a34496c793fd87c235e764317351a0aacd4f6d1#0a34496c793fd87c235e764317351a0aacd4f6d1"
 dependencies = [
  "iced_core",
  "iced_debug",
@@ -1853,7 +1804,7 @@ dependencies = [
 [[package]]
 name = "iced_core"
 version = "0.14.0-dev"
-source = "git+https://github.com/iced-rs/iced.git#bfc27e4691875840010e3d1e282b8e26b821c569"
+source = "git+https://github.com/iced-rs/iced.git?rev=0a34496c793fd87c235e764317351a0aacd4f6d1#0a34496c793fd87c235e764317351a0aacd4f6d1"
 dependencies = [
  "bitflags 2.9.4",
  "bytes",
@@ -1870,7 +1821,7 @@ dependencies = [
 [[package]]
 name = "iced_debug"
 version = "0.14.0-dev"
-source = "git+https://github.com/iced-rs/iced.git#bfc27e4691875840010e3d1e282b8e26b821c569"
+source = "git+https://github.com/iced-rs/iced.git?rev=0a34496c793fd87c235e764317351a0aacd4f6d1#0a34496c793fd87c235e764317351a0aacd4f6d1"
 dependencies = [
  "iced_core",
  "iced_futures",
@@ -1880,7 +1831,7 @@ dependencies = [
 [[package]]
 name = "iced_devtools"
 version = "0.14.0-dev"
-source = "git+https://github.com/iced-rs/iced.git#bfc27e4691875840010e3d1e282b8e26b821c569"
+source = "git+https://github.com/iced-rs/iced.git?rev=0a34496c793fd87c235e764317351a0aacd4f6d1#0a34496c793fd87c235e764317351a0aacd4f6d1"
 dependencies = [
  "iced_debug",
  "iced_program",
@@ -1891,7 +1842,7 @@ dependencies = [
 [[package]]
 name = "iced_exdevtools"
 version = "0.14.0-dev"
-source = "git+https://github.com/waycrate/exwlshelleventloop.git#d82683fa3dc4e492aebeb1d94975515f20955232"
+source = "git+https://github.com/baelyk/exwlshelleventloop?branch=baelyks-shell#5f1930843ae244a3c299f65b7151d85eddc17045"
 dependencies = [
  "iced_debug",
  "iced_devtools",
@@ -1903,7 +1854,7 @@ dependencies = [
 [[package]]
 name = "iced_futures"
 version = "0.14.0-dev"
-source = "git+https://github.com/iced-rs/iced.git#bfc27e4691875840010e3d1e282b8e26b821c569"
+source = "git+https://github.com/iced-rs/iced.git?rev=0a34496c793fd87c235e764317351a0aacd4f6d1#0a34496c793fd87c235e764317351a0aacd4f6d1"
 dependencies = [
  "futures",
  "iced_core",
@@ -1917,7 +1868,7 @@ dependencies = [
 [[package]]
 name = "iced_graphics"
 version = "0.14.0-dev"
-source = "git+https://github.com/iced-rs/iced.git#bfc27e4691875840010e3d1e282b8e26b821c569"
+source = "git+https://github.com/iced-rs/iced.git?rev=0a34496c793fd87c235e764317351a0aacd4f6d1#0a34496c793fd87c235e764317351a0aacd4f6d1"
 dependencies = [
  "bitflags 2.9.4",
  "bytemuck",
@@ -1937,7 +1888,7 @@ dependencies = [
 [[package]]
 name = "iced_layershell"
 version = "0.14.0-dev"
-source = "git+https://github.com/waycrate/exwlshelleventloop.git#d82683fa3dc4e492aebeb1d94975515f20955232"
+source = "git+https://github.com/baelyk/exwlshelleventloop?branch=baelyks-shell#5f1930843ae244a3c299f65b7151d85eddc17045"
 dependencies = [
  "enumflags2",
  "futures",
@@ -1963,7 +1914,7 @@ dependencies = [
 [[package]]
 name = "iced_layershell_macros"
 version = "0.14.0-dev"
-source = "git+https://github.com/waycrate/exwlshelleventloop.git#d82683fa3dc4e492aebeb1d94975515f20955232"
+source = "git+https://github.com/baelyk/exwlshelleventloop?branch=baelyks-shell#5f1930843ae244a3c299f65b7151d85eddc17045"
 dependencies = [
  "darling",
  "manyhow",
@@ -1975,7 +1926,7 @@ dependencies = [
 [[package]]
 name = "iced_program"
 version = "0.14.0-dev"
-source = "git+https://github.com/iced-rs/iced.git#bfc27e4691875840010e3d1e282b8e26b821c569"
+source = "git+https://github.com/iced-rs/iced.git?rev=0a34496c793fd87c235e764317351a0aacd4f6d1#0a34496c793fd87c235e764317351a0aacd4f6d1"
 dependencies = [
  "iced_graphics",
  "iced_runtime",
@@ -1984,7 +1935,7 @@ dependencies = [
 [[package]]
 name = "iced_renderer"
 version = "0.14.0-dev"
-source = "git+https://github.com/iced-rs/iced.git#bfc27e4691875840010e3d1e282b8e26b821c569"
+source = "git+https://github.com/iced-rs/iced.git?rev=0a34496c793fd87c235e764317351a0aacd4f6d1#0a34496c793fd87c235e764317351a0aacd4f6d1"
 dependencies = [
  "iced_graphics",
  "iced_tiny_skia",
@@ -1996,7 +1947,7 @@ dependencies = [
 [[package]]
 name = "iced_runtime"
 version = "0.14.0-dev"
-source = "git+https://github.com/iced-rs/iced.git#bfc27e4691875840010e3d1e282b8e26b821c569"
+source = "git+https://github.com/iced-rs/iced.git?rev=0a34496c793fd87c235e764317351a0aacd4f6d1#0a34496c793fd87c235e764317351a0aacd4f6d1"
 dependencies = [
  "bytes",
  "iced_core",
@@ -2009,7 +1960,7 @@ dependencies = [
 [[package]]
 name = "iced_tiny_skia"
 version = "0.14.0-dev"
-source = "git+https://github.com/iced-rs/iced.git#bfc27e4691875840010e3d1e282b8e26b821c569"
+source = "git+https://github.com/iced-rs/iced.git?rev=0a34496c793fd87c235e764317351a0aacd4f6d1#0a34496c793fd87c235e764317351a0aacd4f6d1"
 dependencies = [
  "bytemuck",
  "cosmic-text",
@@ -2026,7 +1977,7 @@ dependencies = [
 [[package]]
 name = "iced_wgpu"
 version = "0.14.0-dev"
-source = "git+https://github.com/iced-rs/iced.git#bfc27e4691875840010e3d1e282b8e26b821c569"
+source = "git+https://github.com/iced-rs/iced.git?rev=0a34496c793fd87c235e764317351a0aacd4f6d1#0a34496c793fd87c235e764317351a0aacd4f6d1"
 dependencies = [
  "bitflags 2.9.4",
  "bytemuck",
@@ -2046,7 +1997,7 @@ dependencies = [
 [[package]]
 name = "iced_widget"
 version = "0.14.0-dev"
-source = "git+https://github.com/iced-rs/iced.git#bfc27e4691875840010e3d1e282b8e26b821c569"
+source = "git+https://github.com/iced-rs/iced.git?rev=0a34496c793fd87c235e764317351a0aacd4f6d1#0a34496c793fd87c235e764317351a0aacd4f6d1"
 dependencies = [
  "iced_renderer",
  "log",
@@ -2059,12 +2010,11 @@ dependencies = [
 [[package]]
 name = "iced_winit"
 version = "0.14.0-dev"
-source = "git+https://github.com/iced-rs/iced.git#bfc27e4691875840010e3d1e282b8e26b821c569"
+source = "git+https://github.com/iced-rs/iced.git?rev=0a34496c793fd87c235e764317351a0aacd4f6d1#0a34496c793fd87c235e764317351a0aacd4f6d1"
 dependencies = [
  "iced_debug",
  "iced_program",
  "log",
- "mundy",
  "rustc-hash 2.1.1",
  "thiserror 2.0.17",
  "tracing",
@@ -2275,7 +2225,7 @@ dependencies = [
 [[package]]
 name = "layershellev"
 version = "0.14.0-dev"
-source = "git+https://github.com/waycrate/exwlshelleventloop.git#d82683fa3dc4e492aebeb1d94975515f20955232"
+source = "git+https://github.com/baelyk/exwlshelleventloop?branch=baelyks-shell#5f1930843ae244a3c299f65b7151d85eddc17045"
 dependencies = [
  "bitflags 2.9.4",
  "calloop 0.14.3",
@@ -2757,16 +2707,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "num_cpus"
-version = "1.17.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "91df4bbde75afed763b708b7eee1e8e7651e02d97f6d5dd763e89367e957b23b"
-dependencies = [
- "hermit-abi",
- "libc",
-]
-
-[[package]]
 name = "num_enum"
 version = "0.7.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3210,16 +3150,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e2c1f9f56e534ac6a9b8a4600bdf0f530fb393b5f393e7b4d03489c3cf0c3f01"
 dependencies = [
  "num-traits",
-]
-
-[[package]]
-name = "ordered-multimap"
-version = "0.7.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "49203cdcae0030493bad186b28da2fa25645fa276a51b6fec8010d281e02ef79"
-dependencies = [
- "dlv-list",
- "hashbrown 0.14.5",
 ]
 
 [[package]]
@@ -3753,16 +3683,6 @@ name = "roxmltree"
 version = "0.20.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6c20b6793b5c2fa6553b250154b78d6d0db37e72700ae35fad9387a46f487c97"
-
-[[package]]
-name = "rust-ini"
-version = "0.20.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3e0698206bcb8882bf2a9ecb4c1e7785db57ff052297085a6efd4fe42302068a"
-dependencies = [
- "cfg-if",
- "ordered-multimap",
-]
 
 [[package]]
 name = "rustc-hash"
@@ -4379,15 +4299,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "tiny-keccak"
-version = "2.0.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2c9d3793400a45f954c52e73d068316d76b6f4e36977e3fcebb13a2721e80237"
-dependencies = [
- "crunchy",
-]
-
-[[package]]
 name = "tiny-skia"
 version = "0.11.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4864,7 +4775,7 @@ dependencies = [
 [[package]]
 name = "waycrate_xkbkeycode"
 version = "0.14.0-dev"
-source = "git+https://github.com/waycrate/exwlshelleventloop.git#d82683fa3dc4e492aebeb1d94975515f20955232"
+source = "git+https://github.com/baelyk/exwlshelleventloop?branch=baelyks-shell#5f1930843ae244a3c299f65b7151d85eddc17045"
 dependencies = [
  "bitflags 2.9.4",
  "calloop 0.14.3",

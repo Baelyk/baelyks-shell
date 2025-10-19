@@ -102,7 +102,7 @@ pub fn find_icon_path(icon_name_or_path: &str) -> Option<PathBuf> {
     }
 
     trace!("Looking for icon {icon_name_or_path}");
-    freedesktop_icons::lookup(icon_name_or_path)
+    let icon = freedesktop_icons::lookup(icon_name_or_path)
         .with_cache()
         .force_svg()
         .with_theme(THEME)
@@ -111,5 +111,12 @@ pub fn find_icon_path(icon_name_or_path: &str) -> Option<PathBuf> {
             .with_cache()
             .with_size(100)
             .with_theme(THEME)
-            .find())
+            .find());
+
+    match &icon {
+        Some(path) => trace!("Found icon {} at {}", icon_name_or_path, path.display()),
+        None => trace!("Unable to find icon {}", icon_name_or_path),
+    }
+
+    icon
 }

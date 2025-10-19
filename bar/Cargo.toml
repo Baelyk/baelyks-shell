@@ -4,17 +4,17 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-iced = { git = "https://github.com/iced-rs/iced.git", features = ["advanced", "tokio", "image", "svg"] }
-iced_layershell = { git = "https://github.com/waycrate/exwlshelleventloop.git" }
-chrono = { version = "0.4.38", features = ["alloc"] }
-log = "0.4"
-fern = "0.6"
-dirs = "5"
-swayipc-async = "2"
-starship-battery = "0.10"
-tokio = { version = "1", features = ["full"] }
-system-tray = "0.8"
-image = "0.25"
-rand = "0.8"
-freedesktop-icons = { git = "https://github.com/baelyk/freedesktop-icons.git" }
-sysinfo = "0.35"
+iced.workspace = true
+iced_layershell.workspace = true
+chrono.workspace = true
+log.workspace = true
+fern.workspace = true
+dirs.workspace = true
+swayipc-async.workspace = true
+starship-battery.workspace = true
+tokio.workspace = true
+system-tray.workspace = true
+image.workspace = true
+rand.workspace = true
+freedesktop-icons.workspace = true
+sysinfo.workspace = true

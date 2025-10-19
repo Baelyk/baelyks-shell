@@ -6,20 +6,20 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-zbus = { version = "5" }
-freedesktop-icons = "0.2.6"
-tokio = { version = "1", features = ["full"] }
-chrono = "0.4.38"
-serde = "1"
-freedesktop-desktop-entry = "0.7.5"
-derive_more = { version = "1", features = ["full"] }
-image = "0.25"
-rand = "0.8"
-log = "0.4"
-fern = "0.6"
-clap = { version = "4.5.20", features = ["derive"] }
-dirs = "5"
-iced = { git = "https://github.com/iced-rs/iced.git", features = ["advanced", "tokio", "image", "svg"] }
-iced_layershell = { git = "https://github.com/waycrate/exwlshelleventloop.git" }
-nom = "8"
-bitflags = "2.9.0"
+zbus.workspace = true
+freedesktop-icons.workspace = true
+tokio.workspace = true
+chrono.workspace = true
+serde.workspace = true
+freedesktop-desktop-entry.workspace = true
+derive_more.workspace = true
+image.workspace = true
+rand.workspace = true
+log.workspace = true
+fern.workspace = true
+clap.workspace = true
+dirs.workspace = true
+iced.workspace = true
+iced_layershell.workspace = true
+nom.workspace = true
+bitflags.workspace = true

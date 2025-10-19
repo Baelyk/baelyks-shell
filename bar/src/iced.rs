@@ -157,7 +157,7 @@ impl State {
 
         let content = Row::new()
             .push(center_y(battery_icon))
-            .push_maybe(if self.battery_hovered {
+            .push(if self.battery_hovered {
                 Some(center_y(text(format!("{}%", info.charge)).size(TEXT_SIZE)))
             } else {
                 None
@@ -259,11 +259,11 @@ impl State {
 
         let right = Row::new()
             .spacing(SMALL)
-            .push_maybe(self.tray())
-            .push_maybe(self.system())
-            .push_maybe(self.input())
-            .push_maybe(self.volume())
-            .push_maybe(self.battery())
+            .push(self.tray())
+            .push(self.system())
+            .push(self.input())
+            .push(self.volume())
+            .push(self.battery())
             .push(self.clock());
         let right = widget::right(right);
 

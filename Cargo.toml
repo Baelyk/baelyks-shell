@@ -1,3 +1,39 @@
 [workspace]
 resolver = "3"
 members = ["bar", "notifications"]
+
+[workspace.dependencies]
+chrono = { version = "0.4.38", features = ["alloc"] }
+log = "0.4"
+fern = "0.6"
+dirs = "5"
+swayipc-async = "2"
+starship-battery = "0.10"
+tokio = { version = "1", features = ["full"] }
+system-tray = "0.8"
+image = "0.25"
+rand = "0.8"
+# Fork allowing for filtering by icon context
+freedesktop-icons = { git = "https://github.com/baelyk/freedesktop-icons.git" }
+sysinfo = "0.35"
+zbus = { version = "5" }
+serde = "1"
+freedesktop-desktop-entry = "0.7.5"
+derive_more = { version = "1", features = ["full"] }
+clap = { version = "4.5.20", features = ["derive"] }
+nom = "8"
+bitflags = "2.9.0"
+
+# Using the development versions of iced and iced_layershell frequently presents
+# issues when the two become out of sync, so I am pinning them to a specific
+# commit in my `baelyks-shell` branch.
+
+[workspace.dependencies.iced]
+git = "https://github.com/iced-rs/iced.git"
+default-features = false
+features = ["advanced", "tokio", "image", "svg"]
+rev = "0a34496c793fd87c235e764317351a0aacd4f6d1"
+
+[workspace.dependencies.iced_layershell]
+git = "https://github.com/baelyk/exwlshelleventloop"
+branch = "baelyks-shell"

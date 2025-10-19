@@ -52,7 +52,7 @@ where
         // On redraws, measure the size of the widget, and if it's different from last time,
         // publish a message with the new size
         if let iced::Event::Window(iced::window::Event::RedrawRequested(_)) = event {
-            let limits = layout::Limits::new(Size::ZERO, Size::INFINITY);
+            let limits = layout::Limits::new(Size::ZERO, Size::INFINITE);
             let new_size = self.layout(tree, renderer, &limits).bounds().size();
             let state = tree.state.downcast_mut::<State>();
 
@@ -99,14 +99,14 @@ where
     }
 
     fn layout(
-        &self,
+        &mut self,
         tree: &mut widget::Tree,
         renderer: &Renderer,
         limits: &layout::Limits,
     ) -> layout::Node {
         let contents = self
             .child
-            .as_widget()
+            .as_widget_mut()
             .layout(&mut tree.children[0], renderer, limits);
 
         layout::Node::container(contents, 0.into())
