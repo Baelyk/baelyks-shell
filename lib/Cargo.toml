@@ -4,3 +4,9 @@ edition = "2024"
 version.workspace = true
 
 [dependencies]
+freedesktop-desktop-entry.workspace = true
+freedesktop-icons.workspace = true
+image.workspace = true
+log.workspace = true
+rand.workspace = true
+system-tray.workspace = true

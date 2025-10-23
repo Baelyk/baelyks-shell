@@ -4,7 +4,6 @@ use derive_more::Debug;
 use log::{debug, info};
 
 mod dbus;
-mod freedesktop;
 mod iced;
 mod markup;
 mod measuring_container;

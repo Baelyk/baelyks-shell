@@ -6,6 +6,7 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+baelyks-shell-lib.workspace = true
 zbus.workspace = true
 freedesktop-icons.workspace = true
 tokio.workspace = true

@@ -11,9 +11,9 @@ use zbus::object_server::SignalEmitter;
 use zbus::zvariant::{DeserializeDict, SerializeDict, Type};
 use zbus::{connection, interface};
 
-use crate::freedesktop::{find_app_name, find_icon_path, tmp_image_from_data};
 use crate::markup::markup;
 use crate::notification::{Notification, Urgency};
+use baelyks_shell_lib::freedesktop::{find_app_name, find_icon_path, tmp_image_from_data};
 
 pub fn dbus() -> impl Stream<Item = DbusMessage> {
     iced::stream::channel(100, async move |mut output| {
@@ -143,7 +143,8 @@ impl NotificationInterface {
             sender,
             next_id: 1,
             used_ids: HashSet::new(),
-            default_icon: find_icon_path("notifications").expect("Unable to find default icon"),
+            default_icon: find_icon_path("notifications", None)
+                .expect("Unable to find default icon"),
         }
     }
 
@@ -252,11 +253,26 @@ impl NotificationInterface {
 
         let icon = hints
             .image_data
-            .as_ref()
-            .and_then(tmp_image_from_data)
+            .and_then(|image| {
+                tmp_image_from_data(
+                    image.width as u32,
+                    image.height as u32,
+                    image.data,
+                    image.has_alpha,
+                )
+            })
             .or_else(|| hints.image_path.clone())
-            .or_else(|| find_icon_path(&app_icon))
-            .or_else(|| hints.icon_data.as_ref().and_then(tmp_image_from_data))
+            .or_else(|| find_icon_path(&app_icon, None))
+            .or_else(|| {
+                hints.icon_data.and_then(|image| {
+                    tmp_image_from_data(
+                        image.width as u32,
+                        image.height as u32,
+                        image.data,
+                        image.has_alpha,
+                    )
+                })
+            })
             .unwrap_or(self.default_icon.clone());
 
         let actions: Vec<(String, String)> = actions

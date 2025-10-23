@@ -79,7 +79,7 @@ enum Message {
 }
 
 fn icon(icon: &str) -> Option<Element<Message>> {
-    let icon = crate::freedesktop::find_icon_path(icon)?;
+    let icon = baelyks_shell_lib::freedesktop::find_icon_path(icon, Some("Status"))?;
     Some(
         widget::svg(icon)
             .width(Length::Fixed(BIG))

@@ -1,12 +1,10 @@
 use std::path::PathBuf;
 
-use freedesktop_desktop_entry::{default_paths, get_languages_from_env, Iter};
+use freedesktop_desktop_entry::{Iter, default_paths, get_languages_from_env};
 use image::{RgbImage, RgbaImage};
 use log::{debug, trace, warn};
-use rand::distributions::Alphanumeric;
 use rand::Rng;
-
-use crate::dbus::ImageData;
+use rand::distributions::Alphanumeric;
 
 pub fn find_app_name(desktop_entry_name: &str) -> Option<String> {
     let locales = get_languages_from_env();
@@ -49,27 +47,19 @@ fn tmp_path() -> Option<PathBuf> {
     None
 }
 
-pub fn tmp_image_from_data(image_data: &ImageData) -> Option<PathBuf> {
+pub fn tmp_image_from_data(width: u32, height: u32, data: Vec<u8>, alpha: bool) -> Option<PathBuf> {
     // Generate a path in the /tmp directory
     let path = tmp_path()?;
 
     // Create and save the image
-    let save_result = if image_data.has_alpha {
-        let Some(image) = RgbaImage::from_raw(
-            image_data.width as u32,
-            image_data.height as u32,
-            image_data.data.clone(),
-        ) else {
+    let save_result = if alpha {
+        let Some(image) = RgbaImage::from_raw(width, height, data) else {
             warn!("Failed to create RGBA image");
             return None;
         };
         image.save(&path)
     } else {
-        let Some(image) = RgbImage::from_raw(
-            image_data.width as u32,
-            image_data.height as u32,
-            image_data.data.clone(),
-        ) else {
+        let Some(image) = RgbImage::from_raw(width, height, data) else {
             warn!("Failed to create RGB image");
             return None;
         };
@@ -88,12 +78,12 @@ pub fn tmp_image_from_data(image_data: &ImageData) -> Option<PathBuf> {
     Some(path)
 }
 
+/// Freedesktop Icon Theme name
+const ICON_THEME: &str = "Gruvbox-Plus-Dark";
+
 /// Gets a path for an icon by first checking if the passed icon is a path that
 /// exists, and if not, searches for a matching freedesktop icon.
-pub fn find_icon_path(icon_name_or_path: &str) -> Option<PathBuf> {
-    /// Freedesktop Icon Theme name
-    const THEME: &str = "Gruvbox-Plus-Dark";
-
+pub fn find_icon_path(icon_name_or_path: &str, context: Option<&str>) -> Option<PathBuf> {
     trace!("Checking path {icon_name_or_path}");
     // Paths are supposed to be prepended with "file://" but in practice many are not
     let path: PathBuf = icon_name_or_path.replace("file://", "").into();
@@ -101,17 +91,18 @@ pub fn find_icon_path(icon_name_or_path: &str) -> Option<PathBuf> {
         return Some(path);
     }
 
-    trace!("Looking for icon {icon_name_or_path}");
-    let icon = freedesktop_icons::lookup(icon_name_or_path)
+    let finder = freedesktop_icons::lookup(icon_name_or_path)
         .with_cache()
         .force_svg()
-        .with_theme(THEME)
-        .find()
-        .or(freedesktop_icons::lookup(icon_name_or_path)
-            .with_cache()
-            .with_size(100)
-            .with_theme(THEME)
-            .find());
+        .with_theme(ICON_THEME);
+
+    let finder = if let Some(context) = context {
+        finder.with_context(context)
+    } else {
+        finder
+    };
+
+    let icon = finder.find();
 
     match &icon {
         Some(path) => trace!("Found icon {} at {}", icon_name_or_path, path.display()),
@@ -119,4 +110,16 @@ pub fn find_icon_path(icon_name_or_path: &str) -> Option<PathBuf> {
     }
 
     icon
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn get_default_notifications_icon() {
+        let found_icon = find_icon_path("notifications", None).expect("Should find icon");
+        let path = PathBuf::from(ICON_THEME.to_owned() + "/actions/24/notifications.svg");
+        assert!(dbg!(found_icon).ends_with(path));
+    }
 }

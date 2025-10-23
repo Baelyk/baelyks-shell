@@ -9,7 +9,7 @@ use system_tray::{
 
 pub use system_tray::item::Status;
 
-use crate::freedesktop::{find_icon_path, tmp_image_from_data};
+use baelyks_shell_lib::freedesktop::{find_icon_path, tmp_image_from_data};
 
 pub fn tray() -> impl Stream<Item = TrayMessage> {
     iced::stream::channel(100, async move |mut output| {
@@ -73,15 +73,20 @@ impl From<StatusNotifierItem> for TrayItem {
         let status = item.status;
         let icon = item
             .icon_name
-            .and_then(|icon_name| find_icon_path(&icon_name))
+            .and_then(|icon_name| find_icon_path(&icon_name, Some("Status")))
             .or_else(|| {
-                if let Some(pixmap) = item.icon_pixmap {
-                    tmp_image_from_data(&pixmap[0])
+                if let Some(pixmap) = item.icon_pixmap?.pop() {
+                    tmp_image_from_data(
+                        pixmap.width as u32,
+                        pixmap.height as u32,
+                        pixmap.pixels,
+                        true,
+                    )
                 } else {
                     None
                 }
             })
-            .or_else(|| find_icon_path("notifications"))
+            .or_else(|| find_icon_path("notifications", Some("Status")))
             .expect("Unable to find default icon");
 
         Self {

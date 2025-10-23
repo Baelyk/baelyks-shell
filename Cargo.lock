@@ -401,6 +401,7 @@ dependencies = [
 name = "baelyks-notification-daemon"
 version = "0.2.0"
 dependencies = [
+ "baelyks-shell-lib",
  "bitflags 2.9.4",
  "chrono",
  "clap",
@@ -423,6 +424,14 @@ dependencies = [
 [[package]]
 name = "baelyks-shell-lib"
 version = "0.0.0"
+dependencies = [
+ "freedesktop-desktop-entry",
+ "freedesktop-icons",
+ "image",
+ "log",
+ "rand",
+ "system-tray",
+]
 
 [[package]]
 name = "base64"
