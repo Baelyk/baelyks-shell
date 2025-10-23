@@ -6,12 +6,12 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-iced = { version = "0.13", features = ["image", "svg"] }
-freedesktop-desktop-entry = "0.7.5"
+baelyks-shell-lib.workspace = true
+freedesktop-desktop-entry.workspace = true
+iced.version = "0.13"
+iced.features = ["image", "svg", "wgpu"]
 nucleo = "0.5.0"
-tokio = { version = "1.40.0", features = ["full"] }
-derive_more = { version = "1", features = ["full"] }
-walkdir = "2"
-lazy_static = "1"
-freedesktop-icons = "0.2.6"
-mime_guess = "2"
+tokio.workspace = true
+derive_more.workspace = true
+walkdir.workspace = true
+mime_guess.workspace = true

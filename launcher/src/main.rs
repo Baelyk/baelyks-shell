@@ -1,5 +1,4 @@
 use derive_more::Debug;
-use freedesktop_desktop_entry::DesktopEntry;
 use iced::{
     keyboard::{key, on_key_press, on_key_release},
     widget, window, Element, Subscription,
@@ -8,25 +7,16 @@ use searcher::SearchItem;
 
 mod searcher;
 
-lazy_static::lazy_static! {
-    pub static ref LOCALES: Vec<String> = freedesktop_desktop_entry::get_languages_from_env();
-}
-
-fn get_desktop_entries() -> Vec<DesktopEntry<'static>> {
-    freedesktop_desktop_entry::Iter::new(freedesktop_desktop_entry::default_paths())
-        .entries(Some(&LOCALES))
-        .filter(|entry| !entry.no_display())
-        .collect()
-}
-
 fn inject_entries(injector: nucleo::Injector<SearchItem>) {
-    get_desktop_entries().into_iter().for_each(|entry| {
-        let item = SearchItem::DesktopEntry(entry);
+    baelyks_shell_lib::freedesktop::get_desktop_entries()
+        .into_iter()
+        .for_each(|entry| {
+            let item = SearchItem::DesktopEntry(entry);
 
-        injector.push(item, |item, cols| {
-            cols[0] = item.search_data();
+            injector.push(item, |item, cols| {
+                cols[0] = item.search_data();
+            });
         });
-    });
 }
 
 fn inject_paths(injector: nucleo::Injector<SearchItem>) {

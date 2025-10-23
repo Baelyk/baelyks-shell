@@ -4,11 +4,11 @@ use iced::futures::channel::mpsc;
 use iced::futures::{select, SinkExt, Stream, StreamExt};
 use walkdir::DirEntry;
 
-use crate::LOCALES;
+use baelyks_shell_lib::freedesktop::LOCALES;
 
 #[derive(Debug, Clone)]
 pub enum SearchItem {
-    DesktopEntry(DesktopEntry<'static>),
+    DesktopEntry(DesktopEntry),
     DirEntry(DirEntry),
 }
 
@@ -67,9 +67,6 @@ impl SearchItem {
     }
 
     pub(crate) fn icon(&self) -> Icon {
-        // TODO: Theme settings?
-        let theme = "Gruvbox-Plus-Dark";
-
         let name = match self {
             Self::DesktopEntry(entry) => entry.icon().unwrap_or(&*entry.appid),
             Self::DirEntry(entry) => {
@@ -80,31 +77,18 @@ impl SearchItem {
                 }
             }
         };
+        let Some(icon) = baelyks_shell_lib::freedesktop::find_icon_path(name, None) else {
+            println!("No icon found (searched {}) for {:#?}", name, self);
+            return Icon::None;
+        };
 
-        if let Some(path) = freedesktop_icons::lookup(name)
-            .with_cache()
-            .with_size(64)
-            .force_svg()
-            .with_theme(theme)
-            .find()
-        {
-            println!("Found svg {} for {}", path.display(), self);
-            return Icon::Svg(path);
+        if icon.extension().is_some_and(|extension| extension == "svg") {
+            println!("Found svg {} for {}", icon.display(), self);
+            Icon::Svg(icon)
+        } else {
+            println!("Found raster {} for {}", icon.display(), self);
+            Icon::Raster(icon)
         }
-
-        if let Some(path) = freedesktop_icons::lookup(name)
-            .with_cache()
-            .with_size(100)
-            .with_theme(theme)
-            .find()
-        {
-            println!("Found raster {} for {}", path.display(), self);
-            return Icon::Raster(path);
-        }
-
-        println!("No icon found (searched {}) for {:#?}", name, self);
-
-        Icon::None
     }
 }
 

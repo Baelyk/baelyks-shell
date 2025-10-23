@@ -1,10 +1,21 @@
 use std::path::PathBuf;
 
-use freedesktop_desktop_entry::{Iter, default_paths, get_languages_from_env};
+use freedesktop_desktop_entry::{DesktopEntry, Iter, default_paths, get_languages_from_env};
 use image::{RgbImage, RgbaImage};
 use log::{debug, trace, warn};
 use rand::Rng;
 use rand::distributions::Alphanumeric;
+
+lazy_static::lazy_static! {
+    pub static ref LOCALES: Vec<String> = freedesktop_desktop_entry::get_languages_from_env();
+}
+
+pub fn get_desktop_entries() -> Vec<DesktopEntry> {
+    freedesktop_desktop_entry::Iter::new(freedesktop_desktop_entry::default_paths())
+        .entries(Some(&LOCALES))
+        .filter(|entry| !entry.no_display())
+        .collect()
+}
 
 pub fn find_app_name(desktop_entry_name: &str) -> Option<String> {
     let locales = get_languages_from_env();

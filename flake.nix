@@ -84,6 +84,11 @@
         wrapInputs = [pkgs.sway pkgs.wireplumber];
       });
 
+      launcher = craneLib.buildPackage (bin {
+        name = "baelyks-launcher";
+        path = ./launcher;
+      });
+
       notifications = craneLib.buildPackage (bin {
         name = "baelyks-notification-daemon";
         path = ./notifications;
