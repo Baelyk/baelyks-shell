@@ -17,6 +17,7 @@ exclude = ["target"]
 
 [workspace.dependencies]
 baelyks-shell-lib.path = "lib"
+measuring-container.path = "measuring-container"
 chrono = { version = "0.4.38", features = ["alloc"] }
 log = "0.4"
 fern = "0.6"

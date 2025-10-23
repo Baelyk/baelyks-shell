@@ -5,7 +5,6 @@ use log::debug;
 mod dbus;
 mod iced;
 mod markup;
-mod measuring_container;
 mod notification;
 
 /// A notification server using Eww to display notifications

@@ -54,6 +54,7 @@
             ./Cargo.toml
             ./Cargo.lock
             (craneLib.fileset.commonCargoSources ./lib)
+            (craneLib.fileset.commonCargoSources ./measuring-container)
             (craneLib.fileset.commonCargoSources path)
           ];
         };

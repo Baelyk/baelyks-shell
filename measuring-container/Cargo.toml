@@ -1,0 +1,8 @@
+[package]
+name = "measuring-container"
+edition = "2024"
+version.workspace = true
+
+[dependencies]
+iced.workspace = true
+iced.features = ["advanced"]

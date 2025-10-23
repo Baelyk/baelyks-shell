@@ -7,6 +7,7 @@ edition = "2021"
 
 [dependencies]
 baelyks-shell-lib.workspace = true
+measuring-container.workspace = true
 zbus.workspace = true
 freedesktop-icons.workspace = true
 tokio.workspace = true

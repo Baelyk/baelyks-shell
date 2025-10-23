@@ -11,8 +11,8 @@ use log::{debug, trace, warn};
 
 use crate::dbus::{self, DbusMessage, NotificationClosedReason, NotificationSignaller};
 use crate::markup::{BodyElement, RichTextSpan};
-use crate::measuring_container::MeasuringContainer;
 use crate::notification::{notification_time, Notification, Urgency};
+use measuring_container::MeasuringContainer;
 
 pub fn run() -> Result<(), iced_layershell::Error> {
     daemon(State::default, State::namespace, State::update, State::view)

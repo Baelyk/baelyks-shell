@@ -414,6 +414,7 @@ dependencies = [
  "iced_layershell",
  "image",
  "log",
+ "measuring-container",
  "nom 8.0.0",
  "rand",
  "serde",
@@ -2446,6 +2447,13 @@ checksum = "8ea1f30cedd69f0a2954655f7188c6a834246d2bcf1e315e2ac40c4b24dc9519"
 dependencies = [
  "cfg-if",
  "rayon",
+]
+
+[[package]]
+name = "measuring-container"
+version = "0.0.0"
+dependencies = [
+ "iced",
 ]
 
 [[package]]
