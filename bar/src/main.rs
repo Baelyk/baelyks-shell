@@ -12,8 +12,6 @@ const POLL_RATE_MS: u64 = 100;
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     baelyks_shell_lib::logging::setup_logger(log::LevelFilter::Debug)?;
 
-    info!("{}", baelyks_shell_lib::add(1, 1));
-
     iced::run()?;
 
     Ok(())
