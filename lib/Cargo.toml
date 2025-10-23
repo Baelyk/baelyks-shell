@@ -4,6 +4,8 @@ edition = "2024"
 version.workspace = true
 
 [dependencies]
+chrono.workspace = true
+fern.workspace = true
 freedesktop-desktop-entry.workspace = true
 freedesktop-icons.workspace = true
 image.workspace = true
