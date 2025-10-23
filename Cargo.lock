@@ -380,6 +380,7 @@ dependencies = [
 name = "baelyks-bar"
 version = "0.1.0"
 dependencies = [
+ "baelyks-shell-lib",
  "chrono",
  "dirs",
  "fern",
@@ -418,6 +419,10 @@ dependencies = [
  "tokio",
  "zbus",
 ]
+
+[[package]]
+name = "baelyks-shell-lib"
+version = "0.0.0"
 
 [[package]]
 name = "base64"

@@ -4,6 +4,7 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
+baelyks-shell-lib.workspace = true
 iced.workspace = true
 iced_layershell.workspace = true
 chrono.workspace = true

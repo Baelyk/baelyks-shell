@@ -5,6 +5,7 @@ version = "0.0.0"
 name = "baelyks-shell"
 
 [workspace]
+resolver = "3"
 # Crane needs members to be defined with a wildcard in order for individual
 # crate member derivations to work independently. To keep the members at the
 # root (and not in e.g. crates/), define members to be any directory that
@@ -15,6 +16,7 @@ members = ["[!.p]*"]
 exclude = ["target"]
 
 [workspace.dependencies]
+baelyks-shell-lib.path = "lib"
 chrono = { version = "0.4.38", features = ["alloc"] }
 log = "0.4"
 fern = "0.6"
