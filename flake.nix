@@ -53,6 +53,7 @@
           fileset = pkgs.lib.fileset.unions [
             ./Cargo.toml
             ./Cargo.lock
+            (craneLib.fileset.commonCargoSources ./lib)
             (craneLib.fileset.commonCargoSources path)
           ];
         };
