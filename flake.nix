@@ -14,7 +14,7 @@
   }: let
     system = "x86_64-linux";
     pkgs = nixpkgs.legacyPackages.${system};
-    toolchain = fenix.packages.${system}.default.toolchain;
+    toolchain = fenix.packages.${system}.complete.toolchain;
     craneLib = (crane.mkLib pkgs).overrideToolchain toolchain;
 
     # For Iced, https://github.com/iced-rs/iced/blob/master/DEPENDENCIES.md
