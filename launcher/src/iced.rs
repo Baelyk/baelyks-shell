@@ -96,13 +96,15 @@ impl State {
     }
 
     fn update(&mut self, message: Message) -> iced::Task<Message> {
+        debug!("Message: {message:?}");
+        let mut tasks = vec![widget::operation::focus("searchbar")];
+
         match message {
             Message::ContentChanged(content) => {
                 self.input = content.clone();
                 if let Some(searcher) = &mut self.searcher {
                     searcher.send(searcher::Message::UpdatePattern(content));
                 }
-                iced::Task::none()
             }
             Message::Searcher(event) => {
                 match event {
@@ -116,16 +118,13 @@ impl State {
                         self.entries = results;
                     }
                 }
-                iced::Task::none()
             }
-            Message::RequestClose => iced::exit(),
+            Message::RequestClose => tasks.push(iced::exit()),
             Message::SelectUp => {
                 self.selected = self.selected.saturating_sub(1);
-                iced::Task::none()
             }
             Message::SelectDown => {
                 self.selected = std::cmp::min(self.selected + 1, self.entries.len() - 1);
-                iced::Task::none()
             }
             Message::OpenSelected => {
                 println!("Opening {}!", self.selected);
@@ -136,21 +135,19 @@ impl State {
                 // exec only returns if something went wrong
                 let error = command.exec();
                 error!("Error opening {}: {}", self.selected, error);
-                iced::Task::none()
             }
             Message::TaskWindowOpen(id) => {
                 println!("Window {} opening", id);
-                iced::Task::none()
             }
             Message::TaskWindowClose => {
                 println!("Window closing");
-                iced::Task::none()
             }
             _ => {
                 warn!("Unexpected message {:?}", message);
-                Task::none()
             }
         }
+
+        Task::batch(tasks)
     }
 
     fn subscription(&self) -> Subscription<Message> {
@@ -192,18 +189,24 @@ impl State {
 }
 
 pub fn run() -> Result<(), iced_layershell::Error> {
-    application(State::default, State::namespace, State::update, State::view)
-        .subscription(State::subscription)
-        .style(State::style)
-        .theme(State::theme)
-        .settings(iced_layershell::Settings {
-            layer_settings: LayerShellSettings {
-                anchor: Anchor::Left | Anchor::Right,
-                size: Some((1000, HEIGHT)),
-                ..Default::default()
-            },
-            default_font: iced::Font::with_name("JetBrainsMono Nerd Font"),
+    application(
+        || (State::default(), widget::operation::focus("searchbar")),
+        State::namespace,
+        State::update,
+        State::view,
+    )
+    .subscription(State::subscription)
+    .style(State::style)
+    .theme(State::theme)
+    .settings(iced_layershell::Settings {
+        layer_settings: LayerShellSettings {
+            anchor: Anchor::Left | Anchor::Right,
+            size: Some((1000, HEIGHT)),
+            keyboard_interactivity: iced_layershell::reexport::KeyboardInteractivity::Exclusive,
             ..Default::default()
-        })
-        .run()
+        },
+        default_font: iced::Font::with_name("JetBrainsMono Nerd Font"),
+        ..Default::default()
+    })
+    .run()
 }
