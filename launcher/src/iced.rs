@@ -1,4 +1,4 @@
-use std::sync::Arc;
+use std::{os::unix::process::CommandExt, sync::Arc};
 
 use iced::{
     Element, Length, Subscription, Task, Theme,
@@ -9,7 +9,7 @@ use iced::{
 use iced_layershell::{
     application, reexport::Anchor, settings::LayerShellSettings, to_layer_message,
 };
-use log::warn;
+use log::{debug, error, warn};
 
 use crate::{providers::Entry, searcher};
 
@@ -129,9 +129,13 @@ impl State {
             }
             Message::OpenSelected => {
                 println!("Opening {}!", self.selected);
-                self.entries[self.selected]
+                let mut command = self.entries[self.selected]
                     .open()
                     .expect("Error opening option");
+                debug!("Command: {command:?}");
+                // exec only returns if something went wrong
+                let error = command.exec();
+                error!("Error opening {}: {}", self.selected, error);
                 iced::Task::none()
             }
             Message::TaskWindowOpen(id) => {

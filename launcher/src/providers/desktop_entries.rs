@@ -15,12 +15,10 @@ impl Entry for DesktopEntry {
         self.name(&LOCALES).unwrap_or_default().to_string()
     }
 
-    fn open(&self) -> Result<(), Box<dyn std::error::Error>> {
-        std::process::Command::new("sh")
-            .arg("-c")
-            .args(self.parse_exec()?)
-            .spawn()?;
-        Ok(())
+    fn open(&self) -> Result<std::process::Command, Box<dyn std::error::Error>> {
+        let mut command = std::process::Command::new("sh");
+        command.arg("-c").args(self.parse_exec()?);
+        Ok(command)
     }
 
     fn matcher_column(&self) -> nucleo::Utf32String {

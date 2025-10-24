@@ -6,7 +6,7 @@ pub trait Entry: std::fmt::Debug + Send + Sync {
 
     fn name(&self) -> String;
 
-    fn open(&self) -> Result<(), Box<dyn std::error::Error>>;
+    fn open(&self) -> Result<std::process::Command, Box<dyn std::error::Error>>;
 
     fn matcher_column(&self) -> nucleo::Utf32String;
 }

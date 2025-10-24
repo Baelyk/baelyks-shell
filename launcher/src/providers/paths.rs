@@ -19,11 +19,10 @@ impl Entry for DirEntry {
         self.path().to_string_lossy().to_string()
     }
 
-    fn open(&self) -> Result<(), Box<dyn std::error::Error>> {
-        std::process::Command::new("xdg-open")
-            .arg(self.path())
-            .spawn()?;
-        Ok(())
+    fn open(&self) -> Result<std::process::Command, Box<dyn std::error::Error>> {
+        let mut command = std::process::Command::new("xdg-open");
+        command.arg(self.path());
+        Ok(command)
     }
 
     fn matcher_column(&self) -> nucleo::Utf32String {
