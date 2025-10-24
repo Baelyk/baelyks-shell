@@ -1,106 +1,20 @@
+use std::sync::Arc;
+
 use derive_more::Debug;
-use freedesktop_desktop_entry::DesktopEntry;
 use iced::futures::channel::mpsc;
-use iced::futures::{select, SinkExt, Stream, StreamExt};
-use walkdir::DirEntry;
+use iced::futures::{SinkExt, Stream, StreamExt, select};
 
-use baelyks_shell_lib::freedesktop::LOCALES;
-
-#[derive(Debug, Clone)]
-pub enum SearchItem {
-    DesktopEntry(DesktopEntry),
-    DirEntry(DirEntry),
-}
-
-impl std::fmt::Display for SearchItem {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            SearchItem::DesktopEntry(entry) => write!(
-                f,
-                "{}",
-                entry
-                    .name(&LOCALES)
-                    .or(entry.generic_name(&LOCALES))
-                    .unwrap_or_default()
-            ),
-            SearchItem::DirEntry(entry) => write!(f, "{}", entry.path().display()),
-        }
-    }
-}
-
-#[derive(Debug, Clone)]
-pub(crate) enum Icon {
-    Svg(std::path::PathBuf),
-    Raster(std::path::PathBuf),
-    None,
-}
-
-impl SearchItem {
-    pub(crate) fn search_data(&self) -> nucleo::Utf32String {
-        match self {
-            SearchItem::DesktopEntry(entry) => {
-                let name = entry.name(&LOCALES).unwrap_or_default();
-                let comment = entry.comment(&LOCALES).unwrap_or_default();
-                let generic_name = entry.generic_name(&LOCALES).unwrap_or_default();
-                format!("{name} {comment} {generic_name}").into()
-            }
-            SearchItem::DirEntry(entry) => entry.path().to_string_lossy().into(),
-        }
-    }
-
-    pub(crate) fn open(&self) -> Result<(), Box<dyn std::error::Error>> {
-        match self {
-            Self::DesktopEntry(entry) => {
-                std::process::Command::new("sh")
-                    .arg("-c")
-                    .args(entry.parse_exec()?)
-                    .spawn()?;
-            }
-            Self::DirEntry(entry) => {
-                std::process::Command::new("xdg-open")
-                    .arg(entry.path())
-                    .spawn()?;
-            }
-        }
-
-        Ok(())
-    }
-
-    pub(crate) fn icon(&self) -> Icon {
-        let name = match self {
-            Self::DesktopEntry(entry) => entry.icon().unwrap_or(&*entry.appid),
-            Self::DirEntry(entry) => {
-                if let Some(mime) = mime_guess::from_path(entry.path()).first() {
-                    &mime.essence_str().replace("/", "-")
-                } else {
-                    "application-blank"
-                }
-            }
-        };
-        let Some(icon) = baelyks_shell_lib::freedesktop::find_icon_path(name, None) else {
-            println!("No icon found (searched {}) for {:#?}", name, self);
-            return Icon::None;
-        };
-
-        if icon.extension().is_some_and(|extension| extension == "svg") {
-            println!("Found svg {} for {}", icon.display(), self);
-            Icon::Svg(icon)
-        } else {
-            println!("Found raster {} for {}", icon.display(), self);
-            Icon::Raster(icon)
-        }
-    }
-}
+use crate::providers::Entry;
 
 pub fn nucleo() -> impl Stream<Item = Event> {
-    iced::stream::channel(100, |mut output| async move {
+    iced::stream::channel(100, async move |mut output| {
         // Create a new Nucleo worker
         let (notify_sender, mut notifier) = mpsc::channel(100);
         let mut notify_on_patterns = notify_sender.clone();
         let notify = std::sync::Arc::new(move || {
             let _ = iced::futures::executor::block_on(notify_sender.clone().send(()));
         });
-        let mut nucleo: nucleo::Nucleo<SearchItem> =
+        let mut nucleo: nucleo::Nucleo<Arc<dyn Entry>> =
             nucleo::Nucleo::new(nucleo::Config::DEFAULT, notify, None, 1);
 
         // Create the channel to communicate with the GUI
@@ -143,7 +57,7 @@ pub fn nucleo() -> impl Stream<Item = Event> {
                         println!("Found {} results", snapshot.matched_item_count());
                         let items = std::cmp::min(20, snapshot.matched_item_count());
                         let range = 0..items;
-                        let results: Vec<SearchItem> = snapshot
+                        let results: Vec<Arc<dyn Entry>> = snapshot
                             .matched_items(range)
                             .map(|item| item.data.clone())
                             .collect();
@@ -160,8 +74,8 @@ pub fn nucleo() -> impl Stream<Item = Event> {
 #[derive(Debug, Clone)]
 pub enum Event {
     #[debug("Initialized(Searcher, Injector)")]
-    Initialized((Searcher, nucleo::Injector<SearchItem>)),
-    FoundResults(Vec<SearchItem>),
+    Initialized((Searcher, nucleo::Injector<Arc<dyn Entry>>)),
+    FoundResults(Vec<Arc<dyn Entry>>),
 }
 
 #[derive(Debug, Clone)]

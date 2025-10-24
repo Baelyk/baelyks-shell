@@ -1,5 +1,3 @@
-use log::info;
-
 mod battery;
 mod iced;
 mod sway;
