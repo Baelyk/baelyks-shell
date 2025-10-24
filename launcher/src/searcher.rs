@@ -3,6 +3,7 @@ use std::sync::Arc;
 use derive_more::Debug;
 use iced::futures::channel::mpsc;
 use iced::futures::{SinkExt, Stream, StreamExt, select};
+use log::{debug, trace};
 
 use crate::providers::Entry;
 
@@ -30,7 +31,7 @@ pub fn nucleo() -> impl Stream<Item = Event> {
         loop {
             select! {
                 message = receiver.select_next_some() => {
-                    println!("Received {:?}", message);
+                    debug!("Received {:?}", message);
                     initialized = true;
                     match message {
                         Message::UpdatePattern(pattern) => {
@@ -49,12 +50,13 @@ pub fn nucleo() -> impl Stream<Item = Event> {
                     if !initialized {
                         continue;
                     }
-                    println!("Searching...");
-                    let status = dbg!(nucleo.tick(5));
+                    debug!("Searching...");
+                    let status = nucleo.tick(5);
+                    trace!("Status: {status:#?}");
 
                     if status.changed {
                         let snapshot = nucleo.snapshot();
-                        println!("Found {} results", snapshot.matched_item_count());
+                        debug!("Found {} results", snapshot.matched_item_count());
                         let items = std::cmp::min(20, snapshot.matched_item_count());
                         let range = 0..items;
                         let results: Vec<Arc<dyn Entry>> = snapshot
@@ -62,7 +64,7 @@ pub fn nucleo() -> impl Stream<Item = Event> {
                             .map(|item| item.data.clone())
                             .collect();
 
-                        println!("Sending {} results", results.len());
+                        debug!("Sending {} results", results.len());
                         let _ = output.send(Event::FoundResults(results)).await;
                     }
                 }
@@ -82,7 +84,7 @@ pub enum Event {
 pub struct Searcher(mpsc::Sender<Message>);
 impl Searcher {
     pub fn send(&mut self, message: Message) {
-        println!("Sending a message");
+        debug!("Sending a message");
         self.0
             .try_send(message)
             .expect("Unable to send message to Searcher");

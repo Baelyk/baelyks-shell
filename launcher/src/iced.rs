@@ -4,12 +4,11 @@ use iced::{
     Element, Length, Subscription, Task, Theme,
     keyboard::{key, on_key_press, on_key_release},
     widget::{self, container},
-    window,
 };
 use iced_layershell::{
     application, reexport::Anchor, settings::LayerShellSettings, to_layer_message,
 };
-use log::{debug, error, warn};
+use log::{debug, error, info, warn};
 
 use crate::{providers::Entry, searcher};
 
@@ -30,9 +29,6 @@ pub enum Message {
     SelectUp,
     SelectDown,
     OpenSelected,
-
-    TaskWindowOpen(window::Id),
-    TaskWindowClose,
 }
 
 pub const SIZE_SMALL: f32 = SIZE_MEDIUM / 2.0;
@@ -127,20 +123,14 @@ impl State {
                 self.selected = std::cmp::min(self.selected + 1, self.entries.len() - 1);
             }
             Message::OpenSelected => {
-                println!("Opening {}!", self.selected);
+                debug!("Opening {}!", self.selected);
                 let mut command = self.entries[self.selected]
                     .open()
                     .expect("Error opening option");
-                debug!("Command: {command:?}");
+                info!("Command: {command:?}");
                 // exec only returns if something went wrong
                 let error = command.exec();
                 error!("Error opening {}: {}", self.selected, error);
-            }
-            Message::TaskWindowOpen(id) => {
-                println!("Window {} opening", id);
-            }
-            Message::TaskWindowClose => {
-                println!("Window closing");
             }
             _ => {
                 warn!("Unexpected message {:?}", message);

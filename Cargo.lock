@@ -402,6 +402,7 @@ name = "baelyks-launcher"
 version = "0.1.0"
 dependencies = [
  "baelyks-shell-lib",
+ "clap",
  "derive_more",
  "freedesktop-desktop-entry",
  "iced",
