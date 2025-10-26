@@ -7,10 +7,10 @@
   inputs.nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.05";
 
   outputs = {
+    self,
     crane,
     fenix,
     nixpkgs,
-    ...
   }: let
     system = "x86_64-linux";
     pkgs = nixpkgs.legacyPackages.${system};
@@ -106,6 +106,76 @@
       shellHook = ''
         echo $(cargo --version)
       '';
+    };
+
+    nixosModules = {
+      bar = {
+        config,
+        lib,
+        ...
+      }: let
+        name = "baelyks-bar";
+        displayname = "Baelyk's bar";
+        cfg = config.services.${name};
+      in {
+        options = {
+          services.${name} = {
+            enable = lib.mkEnableOption displayname;
+            package = lib.mkOption {
+              type = lib.types.package;
+              default = self.packages.${system}.bar;
+              defaultText = lib.literalExpression "self.pacakges.default";
+              description = "Package providing {command}`${name}`.";
+            };
+          };
+        };
+
+        config = lib.mkIf cfg.enable {
+          home.packages = [cfg.package];
+
+          systemd.user.services.${name} = {
+            Unit.Description = displayname;
+            Unit.PartOf = ["graphical-session.target"];
+            Service.ExecStart = "${cfg.package}/bin/${name}";
+            Install.WantedBy = ["graphical-session.target"];
+          };
+        };
+      };
+
+      notifications = {
+        config,
+        lib,
+        ...
+      }: let
+        name = "baelyks-notification-daemon";
+        displayname = "Baelyk's notification daemon";
+        cfg = config.services.${name};
+      in {
+        options = {
+          services.${name} = {
+            enable = lib.mkEnableOption displayname;
+            package = lib.mkOption {
+              type = lib.types.package;
+              default = self.packages.${system}.notifications;
+              defaultText = lib.literalExpression "self.pacakges.default";
+              description = "Package providing {command}`${name}`.";
+            };
+          };
+        };
+
+        config = lib.mkIf cfg.enable {
+          home.packages = [cfg.package];
+
+          systemd.user.services.${name} = {
+            Unit.Description = displayname;
+            Service = {
+              Type = "dbus";
+              BusName = "org.freedesktop.Notifications";
+              ExecStart = "${cfg.package}/bin/${name}";
+            };
+          };
+        };
+      };
     };
   };
 }
