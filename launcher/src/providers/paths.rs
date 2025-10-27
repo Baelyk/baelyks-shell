@@ -55,5 +55,4 @@ pub fn inject_paths(injector: nucleo::Injector<Arc<dyn Entry>>) {
                 cols[0] = entry.matcher_column();
             });
         });
-    println!("injected {} paths!", injector.injected_items());
 }

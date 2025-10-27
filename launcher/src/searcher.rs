@@ -10,7 +10,7 @@ use crate::providers::Entry;
 pub fn nucleo() -> impl Stream<Item = Event> {
     iced::stream::channel(100, async move |mut output| {
         // Create a new Nucleo worker
-        let (notify_sender, mut notifier) = mpsc::channel(100);
+        let (notify_sender, mut notifier) = mpsc::channel(1_000_000_000);
         let mut notify_on_patterns = notify_sender.clone();
         let notify = std::sync::Arc::new(move || {
             let _ = iced::futures::executor::block_on(notify_sender.clone().send(()));

@@ -52,6 +52,12 @@ default-features = false
 features = ["advanced", "tokio", "image", "svg"]
 rev = "0a34496c793fd87c235e764317351a0aacd4f6d1"
 
+[workspace.dependencies.iced_runtime]
+git = "https://github.com/iced-rs/iced.git"
+# default-features = false
+# features = ["advanced", "tokio", "image", "svg"]
+rev = "0a34496c793fd87c235e764317351a0aacd4f6d1"
+
 [workspace.dependencies.iced_layershell]
 git = "https://github.com/baelyk/exwlshelleventloop"
 branch = "baelyks-shell"

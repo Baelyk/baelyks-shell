@@ -407,6 +407,7 @@ dependencies = [
  "freedesktop-desktop-entry",
  "iced",
  "iced_layershell",
+ "iced_runtime",
  "log",
  "mime_guess",
  "nucleo",

@@ -8,7 +8,7 @@ use iced::{
 use iced_layershell::{
     application, reexport::Anchor, settings::LayerShellSettings, to_layer_message,
 };
-use log::{debug, error, info, warn};
+use log::{debug, error, info, trace, warn};
 
 use crate::{providers::Entry, searcher};
 
@@ -102,25 +102,29 @@ impl State {
                     searcher.send(searcher::Message::UpdatePattern(content));
                 }
             }
-            Message::Searcher(event) => {
-                match event {
-                    searcher::Event::Initialized((searcher, injector)) => {
-                        self.searcher = Some(searcher);
-                        // TODO: Not this
-                        crate::providers::desktop_entries::inject_entries(injector.clone());
-                        crate::providers::paths::inject_paths(injector.clone());
-                    }
-                    searcher::Event::FoundResults(results) => {
-                        self.entries = results;
-                    }
+            Message::Searcher(event) => match event {
+                searcher::Event::Initialized((searcher, injector)) => {
+                    self.searcher = Some(searcher);
+                    let entry_injector = injector.clone();
+                    tasks.push(iced_runtime::task::blocking(|_| {
+                        crate::providers::desktop_entries::inject_entries(entry_injector);
+                    }));
+                    let path_injector = injector.clone();
+                    tasks.push(iced_runtime::task::blocking(|_| {
+                        crate::providers::paths::inject_paths(path_injector);
+                    }));
                 }
-            }
+                searcher::Event::FoundResults(results) => {
+                    self.entries = results;
+                }
+            },
             Message::RequestClose => tasks.push(iced::exit()),
             Message::SelectUp => {
                 self.selected = self.selected.saturating_sub(1);
             }
             Message::SelectDown => {
-                self.selected = std::cmp::min(self.selected + 1, self.entries.len() - 1);
+                self.selected =
+                    std::cmp::min(self.selected + 1, self.entries.len().saturating_sub(1));
             }
             Message::OpenSelected => {
                 debug!("Opening {}!", self.selected);
