@@ -103,10 +103,26 @@ impl State {
                                     let text = entry
                                         .text()
                                         .size(TEXT_SIZE)
+                                        .width(
+                                            // TODO: better way to do this: Length::Fill forces row
+                                            // wrapping
+                                            WIDTH as f32
+                                            // Icon
+                                            - (ICON_SIZE + SIZE_TINY)
+                                            // Row spacing
+                                            - SIZE_TINY
+                                            // Scrollbar and scrollbar spacing
+                                            - SIZE_TINY - (SIZE_TINY - SIZE_BORDER)
+                                            // Scroll container padding
+                                            - 2.0 * SIZE_TINY
+                                            // Border
+                                            - 2.0 * SIZE_BORDER,
+                                        )
                                         .wrapping(widget::text::Wrapping::WordOrGlyph);
                                     let row = widget::row![icon, widget::center_y(text)]
                                         .spacing(SIZE_TINY)
-                                        .width(Length::Fill);
+                                        .width(Length::Fill)
+                                        .wrap();
 
                                     widget::Container::new(row).style(move |theme| {
                                         let palette = theme.palette();
