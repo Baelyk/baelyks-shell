@@ -448,6 +448,7 @@ dependencies = [
  "fern",
  "freedesktop-desktop-entry",
  "freedesktop-icons",
+ "iced",
  "image",
  "lazy_static",
  "log",

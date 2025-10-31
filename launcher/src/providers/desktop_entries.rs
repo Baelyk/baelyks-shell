@@ -1,9 +1,16 @@
 use std::sync::Arc;
 
-use baelyks_shell_lib::freedesktop::{LOCALES, find_icon_path};
+use baelyks_shell_lib::{
+    freedesktop::{LOCALES, find_icon_path},
+    gruvbox,
+};
 use freedesktop_desktop_entry::DesktopEntry;
+use iced::widget::{rich_text, span};
 
-use crate::providers::Entry;
+use crate::{
+    iced::{FONT, Message},
+    providers::Entry,
+};
 
 impl Entry for DesktopEntry {
     fn icon(&self) -> Option<std::path::PathBuf> {
@@ -11,8 +18,20 @@ impl Entry for DesktopEntry {
         find_icon_path(icon, Some("Applications"))
     }
 
-    fn name(&self) -> String {
-        self.name(&LOCALES).unwrap_or_default().to_string()
+    fn text(&self) -> iced::widget::text::Rich<'_, (), Message> {
+        rich_text![
+            // Name
+            span(self.name(&LOCALES).unwrap_or_default()),
+            // Comment
+            self.comment(&LOCALES)
+                .map(|comment| span(format!(" ({})", comment))
+                    .font(iced::Font {
+                        style: iced::font::Style::Italic,
+                        ..FONT
+                    })
+                    .color(gruvbox::GRAY_244))
+                .unwrap_or_default()
+        ]
     }
 
     fn open(&self) -> Result<std::process::Command, Box<dyn std::error::Error>> {
@@ -25,7 +44,8 @@ impl Entry for DesktopEntry {
         let name = self.name(&LOCALES).unwrap_or_default();
         let comment = self.comment(&LOCALES).unwrap_or_default();
         let generic_name = self.generic_name(&LOCALES).unwrap_or_default();
-        format!("{name} {comment} {generic_name}").into()
+        let exec = self.exec().unwrap_or_default();
+        format!("{name} {comment} {generic_name} {exec}").into()
     }
 }
 

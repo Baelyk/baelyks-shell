@@ -8,6 +8,7 @@ chrono.workspace = true
 fern.workspace = true
 freedesktop-desktop-entry.workspace = true
 freedesktop-icons.workspace = true
+iced.workspace = true
 image.workspace = true
 lazy_static.workspace = true
 log.workspace = true

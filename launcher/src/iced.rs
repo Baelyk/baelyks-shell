@@ -1,14 +1,15 @@
 use std::{os::unix::process::CommandExt, sync::Arc};
 
+use baelyks_shell_lib::gruvbox;
 use iced::{
     Element, Length, Subscription, Task, Theme,
     keyboard::{key, on_key_press, on_key_release},
-    widget::{self, container},
+    widget::{self},
 };
 use iced_layershell::{
     application, reexport::Anchor, settings::LayerShellSettings, to_layer_message,
 };
-use log::{debug, error, info, trace, warn};
+use log::{debug, error, info, warn};
 
 use crate::{providers::Entry, searcher};
 
@@ -31,64 +32,140 @@ pub enum Message {
     OpenSelected,
 }
 
-pub const SIZE_SMALL: f32 = SIZE_MEDIUM / 2.0;
-pub const SIZE_MEDIUM: f32 = 35.0;
+pub const SIZE_BORDER: f32 = 2.0;
+pub const SIZE_TINY: f32 = 10.0;
+pub const SIZE_MEDIUM: f32 = 30.0;
 pub const HEIGHT: u32 = 1000;
+pub const WIDTH: u32 = 2000;
+pub const FONT: iced::Font = iced::Font::with_name("JetBrainsMono Nerd Font");
 
 impl State {
-    fn view(&self) -> widget::Column<'_, Message> {
+    fn view(&self) -> impl Into<Element<'_, Message>> {
         const TEXT_SIZE: f32 = SIZE_MEDIUM;
         const ICON_SIZE: f32 = TEXT_SIZE * 1.2;
         let search_bar = widget::text_input("Search...", &self.input)
             .on_input(Message::ContentChanged)
             .on_submit(Message::OpenSelected)
             .size(SIZE_MEDIUM)
-            .id("searchbar");
-        let results = iced::widget::scrollable(
-            iced::widget::column(
-                self.entries
-                    .iter()
-                    .enumerate()
-                    .map(|(i, entry)| {
-                        let icon = entry.icon();
-                        let image: Option<Element<Message>> = icon.map(|icon| {
-                            if icon.extension().is_some_and(|extension| extension == "svg") {
-                                iced::widget::svg(icon)
-                                    .width(Length::Fill)
-                                    .height(Length::Fill)
-                                    .into()
-                            } else {
-                                iced::widget::image(icon)
-                                    .width(Length::Fill)
-                                    .height(Length::Fill)
-                                    .into()
-                            }
-                        });
-                        let icon = container(image).width(ICON_SIZE).height(ICON_SIZE);
+            .padding(SIZE_MEDIUM)
+            .id("searchbar")
+            .style(|theme, status| {
+                let mut style = widget::text_input::default(theme, status);
+                style.border = iced::Border {
+                    color: theme.palette().text,
+                    width: SIZE_BORDER,
+                    radius: 0.0.into(),
+                };
+                style
+            });
+        let results = if self.entries.is_empty() {
+            None
+        } else {
+            Some(
+                widget::container(
+                    widget::scrollable::Scrollable::with_direction(
+                        iced::widget::column(
+                            self.entries
+                                .iter()
+                                .enumerate()
+                                .map(|(i, entry)| {
+                                    let icon = entry.icon();
+                                    let image: Option<Element<Message>> = icon.map(|icon| {
+                                        if icon
+                                            .extension()
+                                            .is_some_and(|extension| extension == "svg")
+                                        {
+                                            iced::widget::svg(icon)
+                                                .width(Length::Fill)
+                                                .height(Length::Fill)
+                                                .style(move |theme: &iced::Theme, _| {
+                                                    widget::svg::Style {
+                                                        color: if i == self.selected {
+                                                            Some(theme.palette().background)
+                                                        } else {
+                                                            None
+                                                        },
+                                                    }
+                                                })
+                                                .into()
+                                        } else {
+                                            iced::widget::image(icon)
+                                                .width(Length::Fill)
+                                                .height(Length::Fill)
+                                                .into()
+                                        }
+                                    });
+                                    let icon = widget::center(image)
+                                        .padding(SIZE_TINY)
+                                        .height(ICON_SIZE + SIZE_TINY)
+                                        .width(ICON_SIZE + SIZE_TINY);
 
-                        let name = iced::widget::text(entry.name()).size(TEXT_SIZE);
-                        let row = widget::row![icon, name]
-                            .height(iced::Length::Shrink)
-                            .width(iced::Length::Fill)
-                            .padding([0.0, SIZE_SMALL])
-                            .spacing(SIZE_SMALL)
-                            .wrap();
+                                    let text = entry
+                                        .text()
+                                        .size(TEXT_SIZE)
+                                        .wrapping(widget::text::Wrapping::WordOrGlyph);
+                                    let row = widget::row![icon, widget::center_y(text)]
+                                        .spacing(SIZE_TINY)
+                                        .width(Length::Fill);
 
-                        widget::Container::new(row).style(move |theme| {
-                            let background = if i == self.selected {
-                                theme.palette().primary
-                            } else {
-                                theme.palette().background
-                            };
-                            widget::container::background(background)
-                        })
+                                    widget::Container::new(row).style(move |theme| {
+                                        let palette = theme.palette();
+                                        let (text_color, background) = if i == self.selected {
+                                            (Some(palette.background), Some(palette.text.into()))
+                                        } else {
+                                            (None, None)
+                                        };
+                                        widget::container::Style {
+                                            text_color,
+                                            background,
+                                            ..Default::default()
+                                        }
+                                    })
+                                })
+                                .map(Element::from),
+                        ),
+                        widget::scrollable::Direction::Vertical(
+                            widget::scrollable::Scrollbar::new()
+                                .scroller_width(SIZE_TINY)
+                                .spacing(SIZE_TINY - SIZE_BORDER),
+                        ),
+                    )
+                    .style(|theme, status| {
+                        let mut style = widget::scrollable::default(theme, status);
+                        style.vertical_rail.background = None;
+                        style.vertical_rail.scroller.border.width = 0.0;
+                        style.vertical_rail.scroller.border.radius = 0.into();
+
+                        style.vertical_rail.scroller.color = match status {
+                            widget::scrollable::Status::Hovered {
+                                is_vertical_scrollbar_hovered: true,
+                                ..
+                            } => gruvbox::LIGHT3,
+                            widget::scrollable::Status::Dragged {
+                                is_vertical_scrollbar_dragged: true,
+                                ..
+                            } => gruvbox::LIGHT4,
+                            _ => gruvbox::LIGHT1,
+                        };
+
+                        style
                     })
-                    .map(Element::from),
+                    .width(Length::Fill),
+                )
+                .style(|theme| widget::container::Style {
+                    background: Some(theme.palette().background.into()),
+                    border: iced::Border {
+                        color: theme.palette().text,
+                        width: SIZE_BORDER,
+                        radius: 0.0.into(),
+                    },
+                    ..Default::default()
+                })
+                .padding(iced::Padding::new(SIZE_TINY)),
             )
-            .spacing(10),
-        )
-        .height(iced::Fill);
-        widget::column![search_bar, results]
+        };
+        widget::container(widget::column![search_bar, results].spacing(SIZE_MEDIUM))
+            .max_height(HEIGHT)
     }
 
     fn update(&mut self, message: Message) -> iced::Task<Message> {
@@ -166,7 +243,7 @@ impl State {
 
     fn style(&self, theme: &Theme) -> iced::theme::Style {
         iced::theme::Style {
-            background_color: theme.palette().background,
+            background_color: iced::Color::TRANSPARENT,
             text_color: theme.palette().text,
         }
     }
@@ -195,11 +272,11 @@ pub fn run() -> Result<(), iced_layershell::Error> {
     .settings(iced_layershell::Settings {
         layer_settings: LayerShellSettings {
             anchor: Anchor::Left | Anchor::Right,
-            size: Some((1000, HEIGHT)),
+            size: Some((WIDTH, HEIGHT)),
             keyboard_interactivity: iced_layershell::reexport::KeyboardInteractivity::Exclusive,
             ..Default::default()
         },
-        default_font: iced::Font::with_name("JetBrainsMono Nerd Font"),
+        default_font: FONT,
         ..Default::default()
     })
     .run()

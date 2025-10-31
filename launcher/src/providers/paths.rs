@@ -1,9 +1,10 @@
 use std::sync::Arc;
 
-use baelyks_shell_lib::freedesktop::find_icon_path;
+use baelyks_shell_lib::{freedesktop::find_icon_path, gruvbox};
+use iced::widget::{rich_text, span};
 use walkdir::DirEntry;
 
-use crate::providers::Entry;
+use crate::{iced::Message, providers::Entry};
 
 impl Entry for DirEntry {
     fn icon(&self) -> Option<std::path::PathBuf> {
@@ -15,8 +16,17 @@ impl Entry for DirEntry {
         find_icon_path(icon, None)
     }
 
-    fn name(&self) -> String {
-        self.path().to_string_lossy().to_string()
+    fn text(&self) -> iced::widget::text::Rich<'_, (), Message> {
+        let name = self.file_name().to_string_lossy();
+        let path = self
+            .path()
+            .parent()
+            .map(|parent| parent.to_string_lossy())
+            .unwrap_or_default();
+        rich_text![
+            span(format!("{path}/")).color(gruvbox::GRAY_244),
+            span(name)
+        ]
     }
 
     fn open(&self) -> Result<std::process::Command, Box<dyn std::error::Error>> {
