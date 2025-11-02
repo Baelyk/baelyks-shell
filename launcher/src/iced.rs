@@ -63,6 +63,7 @@ impl State {
                 widget::container(SelectableRows::with_rows(
                     self.entries
                         .iter()
+                        .take(self.selected + 25)
                         .enumerate()
                         .map(|(i, entry)| {
                             let icon = entry.icon();
