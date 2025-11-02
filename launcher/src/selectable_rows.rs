@@ -184,40 +184,43 @@ impl<'a, Message, Theme, Renderer: iced::advanced::Renderer> Widget<Message, The
         let mut last =
             selected.max((first + max_visible_rows - 1).min(self.rows.len().saturating_sub(1)));
 
-        let Some(last_visible) = layout
-            .children()
-            .enumerate()
-            .take_while(|(_, child_layout)| {
-                layout.bounds().y + layout.bounds().height
-                    > child_layout.bounds().y + child_layout.bounds().height
-            })
-            .map(|(i, _)| i)
-            .last()
-        else {
-            // No children, nothing to do
-            return;
-        };
-
-        // Scroll down so the selected row is above the last visible row, until the last visible
-        // row is the last possible row
-        let selected_row = selected - first;
-        if first + last_visible + 1 < self.rows.len() && selected_row >= last_visible {
-            let delta = selected_row - last_visible + 1;
-            first = (first + delta).min(selected);
-            last = (last + delta).min(self.rows.len().saturating_sub(1));
-        }
-
-        let new_state = State {
-            selected,
-            first,
-            last,
-        };
-
         if selected != state.selected || *state == State::default() {
             shell.publish((self.on_select)(selected));
         }
 
-        tree.state = iced::advanced::widget::tree::State::new(new_state);
+        if let Some(last_visible) = layout
+            .children()
+            .enumerate()
+            .take_while(|(_, child_layout)| {
+                child_layout.bounds().height > 0.0
+                    && layout.bounds().y + layout.bounds().height
+                        > child_layout.bounds().y + child_layout.bounds().height
+            })
+            .map(|(i, _)| i)
+            .last()
+        {
+            // Scroll down so the selected row is above the last visible row, until the last visible
+            // row is the last possible row
+            let selected_row = selected - first;
+            if first + last_visible + 1 < self.rows.len() && selected_row >= last_visible {
+                let delta = selected_row - last_visible + 1;
+                first = (first + delta).min(selected);
+                last = (last + delta).min(self.rows.len().saturating_sub(1));
+            }
+        } else if !self.rows.is_empty() && layout.children().next().is_none() {
+            shell.invalidate_layout();
+            shell.request_redraw();
+        } else if !self.rows.is_empty() {
+            shell.invalidate_layout();
+            self.diff(tree);
+            shell.request_redraw();
+        }
+
+        tree.state = iced::advanced::widget::tree::State::new(State {
+            selected,
+            first,
+            last,
+        });
     }
 
     fn mouse_interaction(
