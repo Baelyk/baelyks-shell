@@ -53,14 +53,16 @@ impl<'a, Message, Theme, Renderer> SelectableRows<'a, Message, Theme, Renderer> 
     }
 
     fn stateful_children(&self, state: &State) -> &[Element<'a, Message, Theme, Renderer>] {
-        &self.rows[state.first..=state.last]
+        self.rows.get(state.first..=state.last).unwrap_or_default()
     }
 
     fn stateful_children_mut(
         &mut self,
         state: &State,
     ) -> &mut [Element<'a, Message, Theme, Renderer>] {
-        &mut self.rows[state.first..=state.last]
+        self.rows
+            .get_mut(state.first..=state.last)
+            .unwrap_or_default()
     }
 }
 
