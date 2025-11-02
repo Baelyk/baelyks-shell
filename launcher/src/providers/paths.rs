@@ -62,7 +62,7 @@ pub fn inject_paths(injector: nucleo::Injector<Arc<dyn Entry>>) {
         .for_each(|entry| {
             let entry = Arc::new(entry);
             injector.push(entry, |entry, cols| {
-                cols[0] = entry.matcher_column();
+                cols[1] = entry.matcher_column();
             });
         });
 }

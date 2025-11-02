@@ -16,7 +16,7 @@ pub fn nucleo() -> impl Stream<Item = Event> {
             let _ = iced::futures::executor::block_on(notify_sender.clone().send(()));
         });
         let mut nucleo: nucleo::Nucleo<Arc<dyn Entry>> =
-            nucleo::Nucleo::new(nucleo::Config::DEFAULT, notify, None, 1);
+            nucleo::Nucleo::new(nucleo::Config::DEFAULT, notify, None, 2);
 
         // Create the channel to communicate with the GUI
         let (sender, mut receiver) = mpsc::channel(100);
@@ -35,6 +35,15 @@ pub fn nucleo() -> impl Stream<Item = Event> {
                     initialized = true;
                     match message {
                         Message::UpdatePattern(pattern) => {
+                            if pattern.get(..1) == Some("/") {
+                            nucleo.pattern.reparse(
+                                1,
+                                &pattern[1..],
+                                nucleo::pattern::CaseMatching::Smart,
+                                nucleo::pattern::Normalization::Smart,
+                                false,
+                            );
+                            } else {
                             nucleo.pattern.reparse(
                                 0,
                                 &pattern,
@@ -42,6 +51,7 @@ pub fn nucleo() -> impl Stream<Item = Event> {
                                 nucleo::pattern::Normalization::Smart,
                                 false,
                             );
+                            }
                             let _ = notify_on_patterns.send(()).await;
                         }
                     }
