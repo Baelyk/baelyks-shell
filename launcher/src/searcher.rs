@@ -57,7 +57,7 @@ pub fn nucleo() -> impl Stream<Item = Event> {
                     if status.changed {
                         let snapshot = nucleo.snapshot();
                         debug!("Found {} results", snapshot.matched_item_count());
-                        let items = std::cmp::min(20, snapshot.matched_item_count());
+                        let items = std::cmp::min(100, snapshot.matched_item_count());
                         let range = 0..items;
                         let results: Vec<Arc<dyn Entry>> = snapshot
                             .matched_items(range)

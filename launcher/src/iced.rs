@@ -1,17 +1,16 @@
 use std::{os::unix::process::CommandExt, sync::Arc};
 
-use baelyks_shell_lib::gruvbox;
 use iced::{
     Element, Length, Subscription, Task, Theme,
-    keyboard::{key, on_key_press, on_key_release},
+    keyboard::{key, on_key_release},
     widget::{self},
 };
 use iced_layershell::{
     application, reexport::Anchor, settings::LayerShellSettings, to_layer_message,
 };
-use log::{debug, error, info, warn};
+use log::{debug, error, info, trace, warn};
 
-use crate::{providers::Entry, searcher};
+use crate::{providers::Entry, searcher, selectable_rows::SelectableRows};
 
 #[derive(Default)]
 struct State {
@@ -27,8 +26,7 @@ pub enum Message {
     ContentChanged(String),
     Searcher(searcher::Event),
     RequestClose,
-    SelectUp,
-    SelectDown,
+    Select(usize),
     OpenSelected,
 }
 
@@ -62,51 +60,44 @@ impl State {
             None
         } else {
             Some(
-                widget::container(
-                    widget::scrollable::Scrollable::with_direction(
-                        iced::widget::column(
-                            self.entries
-                                .iter()
-                                .enumerate()
-                                .map(|(i, entry)| {
-                                    let icon = entry.icon();
-                                    let image: Option<Element<Message>> = icon.map(|icon| {
-                                        if icon
-                                            .extension()
-                                            .is_some_and(|extension| extension == "svg")
-                                        {
-                                            iced::widget::svg(icon)
-                                                .width(Length::Fill)
-                                                .height(Length::Fill)
-                                                .style(move |theme: &iced::Theme, _| {
-                                                    widget::svg::Style {
-                                                        color: if i == self.selected {
-                                                            Some(theme.palette().background)
-                                                        } else {
-                                                            None
-                                                        },
-                                                    }
-                                                })
-                                                .into()
-                                        } else {
-                                            iced::widget::image(icon)
-                                                .width(Length::Fill)
-                                                .height(Length::Fill)
-                                                .into()
-                                        }
-                                    });
-                                    let icon = widget::center(image)
-                                        .padding(SIZE_TINY)
-                                        .height(ICON_SIZE + SIZE_TINY)
-                                        .width(ICON_SIZE + SIZE_TINY);
+                widget::container(SelectableRows::with_rows(
+                    self.entries
+                        .iter()
+                        .enumerate()
+                        .map(|(i, entry)| {
+                            let icon = entry.icon();
+                            let image: Option<Element<Message>> = icon.map(|icon| {
+                                if icon.extension().is_some_and(|extension| extension == "svg") {
+                                    iced::widget::svg(icon)
+                                        .width(Length::Fill)
+                                        .height(Length::Fill)
+                                        .style(move |theme: &iced::Theme, _| widget::svg::Style {
+                                            color: if i == self.selected {
+                                                Some(theme.palette().background)
+                                            } else {
+                                                None
+                                            },
+                                        })
+                                        .into()
+                                } else {
+                                    iced::widget::image(icon)
+                                        .width(Length::Fill)
+                                        .height(Length::Fill)
+                                        .into()
+                                }
+                            });
+                            let icon = widget::center(image)
+                                .padding(SIZE_TINY)
+                                .height(ICON_SIZE + SIZE_TINY)
+                                .width(ICON_SIZE + SIZE_TINY);
 
-                                    let text = entry
-                                        .text()
-                                        .size(TEXT_SIZE)
-                                        .width(
-                                            // TODO: better way to do this: Length::Fill forces row
-                                            // wrapping
-                                            WIDTH as f32
+                            let text = entry
+                                .text()
+                                .size(TEXT_SIZE)
+                                .width(
+                                    // TODO: better way to do this: Length::Fill forces row
+                                    // wrapping
+                                    WIDTH as f32
                                             // Icon
                                             - (ICON_SIZE + SIZE_TINY)
                                             // Row spacing
@@ -117,58 +108,32 @@ impl State {
                                             - 2.0 * SIZE_TINY
                                             // Border
                                             - 2.0 * SIZE_BORDER,
-                                        )
-                                        .wrapping(widget::text::Wrapping::WordOrGlyph);
-                                    let row = widget::row![icon, widget::center_y(text)]
-                                        .spacing(SIZE_TINY)
-                                        .width(Length::Fill)
-                                        .wrap();
+                                )
+                                .wrapping(widget::text::Wrapping::WordOrGlyph);
+                            let row = widget::row![icon, widget::center_y(text)]
+                                .spacing(SIZE_TINY)
+                                .width(Length::Fill)
+                                .wrap();
 
-                                    widget::Container::new(row).style(move |theme| {
-                                        let palette = theme.palette();
-                                        let (text_color, background) = if i == self.selected {
-                                            (Some(palette.background), Some(palette.text.into()))
-                                        } else {
-                                            (None, None)
-                                        };
-                                        widget::container::Style {
-                                            text_color,
-                                            background,
-                                            ..Default::default()
-                                        }
-                                    })
-                                })
-                                .map(Element::from),
-                        ),
-                        widget::scrollable::Direction::Vertical(
-                            widget::scrollable::Scrollbar::new()
-                                .scroller_width(SIZE_TINY)
-                                .spacing(SIZE_TINY - SIZE_BORDER),
-                        ),
-                    )
-                    .style(|theme, status| {
-                        let mut style = widget::scrollable::default(theme, status);
-                        style.vertical_rail.background = None;
-                        style.vertical_rail.scroller.border.width = 0.0;
-                        style.vertical_rail.scroller.border.radius = 0.into();
-
-                        style.vertical_rail.scroller.color = match status {
-                            widget::scrollable::Status::Hovered {
-                                is_vertical_scrollbar_hovered: true,
-                                ..
-                            } => gruvbox::LIGHT3,
-                            widget::scrollable::Status::Dragged {
-                                is_vertical_scrollbar_dragged: true,
-                                ..
-                            } => gruvbox::LIGHT4,
-                            _ => gruvbox::LIGHT1,
-                        };
-
-                        style
-                    })
-                    .width(Length::Fill),
-                )
-                .style(|theme| widget::container::Style {
+                            widget::Container::new(row).style(move |theme| {
+                                let palette = theme.palette();
+                                let (text_color, background) = if i == self.selected {
+                                    (Some(palette.background), Some(palette.text.into()))
+                                } else {
+                                    (None, None)
+                                };
+                                widget::container::Style {
+                                    text_color,
+                                    background,
+                                    ..Default::default()
+                                }
+                            })
+                        })
+                        .map(Element::from),
+                    ICON_SIZE + SIZE_TINY,
+                    Box::new(Message::Select),
+                ))
+                .style(|theme: &Theme| widget::container::Style {
                     background: Some(theme.palette().background.into()),
                     border: iced::Border {
                         color: theme.palette().text,
@@ -185,7 +150,7 @@ impl State {
     }
 
     fn update(&mut self, message: Message) -> iced::Task<Message> {
-        debug!("Message: {message:?}");
+        trace!("Message: {message:?}");
         let mut tasks = vec![widget::operation::focus("searchbar")];
 
         match message {
@@ -208,17 +173,12 @@ impl State {
                     }));
                 }
                 searcher::Event::FoundResults(results) => {
+                    debug!("Received {} results", results.len());
                     self.entries = results;
                 }
             },
             Message::RequestClose => tasks.push(iced::exit()),
-            Message::SelectUp => {
-                self.selected = self.selected.saturating_sub(1);
-            }
-            Message::SelectDown => {
-                self.selected =
-                    std::cmp::min(self.selected + 1, self.entries.len().saturating_sub(1));
-            }
+            Message::Select(selected) => self.selected = selected,
             Message::OpenSelected => {
                 debug!("Opening {}!", self.selected);
                 let mut command = self.entries[self.selected]
@@ -240,11 +200,6 @@ impl State {
     fn subscription(&self) -> Subscription<Message> {
         let subscriptions = [
             Subscription::run(searcher::nucleo).map(Message::Searcher),
-            on_key_press(|key, _| match key {
-                key::Key::Named(key::Named::ArrowUp) => Some(Message::SelectUp),
-                key::Key::Named(key::Named::ArrowDown) => Some(Message::SelectDown),
-                _ => None,
-            }),
             on_key_release(|key, _| match key {
                 key::Key::Named(key::Named::Escape) => Some(Message::RequestClose),
                 _ => None,

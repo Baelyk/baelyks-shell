@@ -4,6 +4,7 @@ use log::debug;
 mod iced;
 mod providers;
 mod searcher;
+mod selectable_rows;
 
 /// A notification server using Eww to display notifications
 #[derive(Parser, Debug)]
