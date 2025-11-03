@@ -226,11 +226,11 @@ impl<'a, Message, Theme, Renderer: iced::advanced::Renderer> Widget<Message, The
             shell.request_redraw();
         }
 
-        tree.state = iced::advanced::widget::tree::State::new(dbg!(State {
+        tree.state = iced::advanced::widget::tree::State::new(State {
             selected,
             first,
             last,
-        }));
+        });
     }
 
     fn mouse_interaction(
