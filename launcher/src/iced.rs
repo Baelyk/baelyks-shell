@@ -60,45 +60,49 @@ impl State {
             None
         } else {
             Some(
-                widget::container(SelectableRows::with_rows(
-                    self.entries
-                        .iter()
-                        .take(self.selected + 25)
-                        .enumerate()
-                        .map(|(i, entry)| {
-                            let icon = entry.icon();
-                            let image: Option<Element<Message>> = icon.map(|icon| {
-                                if icon.extension().is_some_and(|extension| extension == "svg") {
-                                    iced::widget::svg(icon)
-                                        .width(Length::Fill)
-                                        .height(Length::Fill)
-                                        .style(move |theme: &iced::Theme, _| widget::svg::Style {
-                                            color: if i == self.selected {
-                                                Some(theme.palette().background)
-                                            } else {
-                                                None
-                                            },
-                                        })
-                                        .into()
-                                } else {
-                                    iced::widget::image(icon)
-                                        .width(Length::Fill)
-                                        .height(Length::Fill)
-                                        .into()
-                                }
-                            });
-                            let icon = widget::center(image)
-                                .padding(SIZE_TINY)
-                                .height(ICON_SIZE + SIZE_TINY)
-                                .width(ICON_SIZE + SIZE_TINY);
+                widget::container(
+                    SelectableRows::with_rows(
+                        self.entries
+                            .iter()
+                            .take(self.selected + 25)
+                            .enumerate()
+                            .map(|(i, entry)| {
+                                let icon = entry.icon();
+                                let image: Option<Element<Message>> = icon.map(|icon| {
+                                    if icon.extension().is_some_and(|extension| extension == "svg")
+                                    {
+                                        iced::widget::svg(icon)
+                                            .width(Length::Fill)
+                                            .height(Length::Fill)
+                                            .style(move |theme: &iced::Theme, _| {
+                                                widget::svg::Style {
+                                                    color: if i == self.selected {
+                                                        Some(theme.palette().background)
+                                                    } else {
+                                                        None
+                                                    },
+                                                }
+                                            })
+                                            .into()
+                                    } else {
+                                        iced::widget::image(icon)
+                                            .width(Length::Fill)
+                                            .height(Length::Fill)
+                                            .into()
+                                    }
+                                });
+                                let icon = widget::center(image)
+                                    .padding(SIZE_TINY)
+                                    .height(ICON_SIZE + SIZE_TINY)
+                                    .width(ICON_SIZE + SIZE_TINY);
 
-                            let text = entry
-                                .text()
-                                .size(TEXT_SIZE)
-                                .width(
-                                    // TODO: better way to do this: Length::Fill forces row
-                                    // wrapping
-                                    WIDTH as f32
+                                let text = entry
+                                    .text()
+                                    .size(TEXT_SIZE)
+                                    .width(
+                                        // TODO: better way to do this: Length::Fill forces row
+                                        // wrapping
+                                        WIDTH as f32
                                             // Icon
                                             - (ICON_SIZE + SIZE_TINY)
                                             // Row spacing
@@ -109,31 +113,33 @@ impl State {
                                             - 2.0 * SIZE_TINY
                                             // Border
                                             - 2.0 * SIZE_BORDER,
-                                )
-                                .wrapping(widget::text::Wrapping::WordOrGlyph);
-                            let row = widget::row![icon, widget::center_y(text)]
-                                .spacing(SIZE_TINY)
-                                .width(Length::Fill)
-                                .wrap();
+                                    )
+                                    .wrapping(widget::text::Wrapping::WordOrGlyph);
+                                let row = widget::row![icon, widget::center_y(text)]
+                                    .spacing(SIZE_TINY)
+                                    .width(Length::Fill)
+                                    .wrap();
 
-                            widget::Container::new(row).style(move |theme| {
-                                let palette = theme.palette();
-                                let (text_color, background) = if i == self.selected {
-                                    (Some(palette.background), Some(palette.text.into()))
-                                } else {
-                                    (None, None)
-                                };
-                                widget::container::Style {
-                                    text_color,
-                                    background,
-                                    ..Default::default()
-                                }
+                                widget::Container::new(row).style(move |theme| {
+                                    let palette = theme.palette();
+                                    let (text_color, background) = if i == self.selected {
+                                        (Some(palette.background), Some(palette.text.into()))
+                                    } else {
+                                        (None, None)
+                                    };
+                                    widget::container::Style {
+                                        text_color,
+                                        background,
+                                        ..Default::default()
+                                    }
+                                })
                             })
-                        })
-                        .map(Element::from),
-                    ICON_SIZE + SIZE_TINY,
-                    Box::new(Message::Select),
-                ))
+                            .map(Element::from),
+                        ICON_SIZE + SIZE_TINY,
+                        Box::new(Message::Select),
+                    )
+                    .padding(SIZE_TINY),
+                )
                 .style(|theme: &Theme| widget::container::Style {
                     background: Some(theme.palette().background.into()),
                     border: iced::Border {
@@ -142,8 +148,7 @@ impl State {
                         radius: 0.0.into(),
                     },
                     ..Default::default()
-                })
-                .padding(iced::Padding::new(SIZE_TINY)),
+                }), //.padding(iced::Padding::new(SIZE_TINY)),
             )
         };
         widget::container(widget::column![search_bar, results].spacing(SIZE_MEDIUM))

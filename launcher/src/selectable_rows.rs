@@ -64,6 +64,12 @@ impl<'a, Message, Theme, Renderer> SelectableRows<'a, Message, Theme, Renderer> 
             .get_mut(state.first..=state.last)
             .unwrap_or_default()
     }
+
+    /// Sets the [`Padding`] of the [`SelectableRows`].
+    pub fn padding<P: Into<Padding>>(mut self, padding: P) -> Self {
+        self.padding = padding.into();
+        self
+    }
 }
 
 impl<'a, Message, Theme, Renderer: iced::advanced::Renderer> Widget<Message, Theme, Renderer>
@@ -77,10 +83,12 @@ impl<'a, Message, Theme, Renderer: iced::advanced::Renderer> Widget<Message, The
     }
 
     fn layout(&mut self, tree: &mut Tree, renderer: &Renderer, limits: &Limits) -> Node {
-        let limits = limits
-            .max_width(f32::INFINITY)
-            .width(self.width)
-            .height(f32::INFINITY);
+        // Modify the limits to force the widget to take up all the remaining space and allow the
+        // rows to take as much space as they want
+        let limits = Limits::new(
+            Size::new(limits.min().width, limits.max().height),
+            Size::new(limits.max().width, f32::INFINITY),
+        );
 
         let state = tree.state.downcast_ref::<State>();
 
@@ -156,7 +164,7 @@ impl<'a, Message, Theme, Renderer: iced::advanced::Renderer> Widget<Message, The
         _renderer: &Renderer,
         _clipboard: &mut dyn iced::advanced::Clipboard,
         shell: &mut Shell<'_, Message>,
-        _viewport: &iced::Rectangle,
+        viewport: &iced::Rectangle,
     ) {
         let state = tree.state.downcast_ref::<State>();
         let mut selected = state.selected;
@@ -176,34 +184,36 @@ impl<'a, Message, Theme, Renderer: iced::advanced::Renderer> Widget<Message, The
 
         // The theoretical max rows based on provided row height lower bound. This is the number of
         // rows that will be added to the widget tree as children.
-        let max_visible_rows = (layout.bounds().height / self.row_min_height).ceil() as usize;
+        let max_visible_rows = (viewport.height / self.row_min_height).ceil() as usize;
 
         // 0 <= first <= selected <= last <= rows.len() - 1
         let selected = selected.clamp(0, self.rows.len().saturating_sub(1));
         let mut first = state.first.clamp(0, selected);
-        let mut last =
-            selected.max((first + max_visible_rows - 1).min(self.rows.len().saturating_sub(1)));
+        let mut last = selected.max(
+            ((first + max_visible_rows).saturating_sub(1)).min(self.rows.len().saturating_sub(1)),
+        );
 
         if selected != state.selected || *state == State::default() {
             shell.publish((self.on_select)(selected));
         }
 
-        if let Some(last_visible) = layout
-            .children()
-            .enumerate()
-            .take_while(|(_, child_layout)| {
-                child_layout.bounds().height > 0.0
-                    && layout.bounds().y + layout.bounds().height
-                        > child_layout.bounds().y + child_layout.bounds().height
-            })
-            .map(|(i, _)| i)
-            .last()
+        if let Some(bounds) = layout.bounds().intersection(viewport)
+            && let Some(last_visible) = layout
+                .children()
+                .enumerate()
+                .take_while(|(_, child_layout)| {
+                    child_layout.bounds().height > 0.0
+                        && bounds.y + bounds.height
+                            > child_layout.bounds().y + child_layout.bounds().height
+                })
+                .map(|(i, _)| i)
+                .last()
         {
             // Scroll down so the selected row is above the last visible row, until the last visible
             // row is the last possible row
             let selected_row = selected - first;
             if first + last_visible + 1 < self.rows.len() && selected_row >= last_visible {
-                let delta = selected_row - last_visible + 1;
+                let delta = selected_row - last_visible;
                 first = (first + delta).min(selected);
                 last = (last + delta).min(self.rows.len().saturating_sub(1));
             }
@@ -216,11 +226,11 @@ impl<'a, Message, Theme, Renderer: iced::advanced::Renderer> Widget<Message, The
             shell.request_redraw();
         }
 
-        tree.state = iced::advanced::widget::tree::State::new(State {
+        tree.state = iced::advanced::widget::tree::State::new(dbg!(State {
             selected,
             first,
             last,
-        });
+        }));
     }
 
     fn mouse_interaction(
