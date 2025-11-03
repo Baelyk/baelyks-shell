@@ -60,7 +60,7 @@ impl State {
             None
         } else {
             Some(
-                widget::container(
+                widget::container(widget::stack!(
                     SelectableRows::with_rows(
                         self.entries
                             .iter()
@@ -107,9 +107,7 @@ impl State {
                                             - (ICON_SIZE + SIZE_TINY)
                                             // Row spacing
                                             - SIZE_TINY
-                                            // Scrollbar and scrollbar spacing
-                                            - SIZE_TINY - (SIZE_TINY - SIZE_BORDER)
-                                            // Scroll container padding
+                                            // Container padding
                                             - 2.0 * SIZE_TINY
                                             // Border
                                             - 2.0 * SIZE_BORDER,
@@ -139,16 +137,37 @@ impl State {
                         Box::new(Message::Select),
                     )
                     .padding(SIZE_TINY),
-                )
+                    // Container with background colored border to hide render overflow
+                    widget::container(None::<Element<'_, Message>>)
+                        .width(Length::Fill)
+                        .height(Length::Fill)
+                        .style(|theme: &Theme| {
+                            widget::container::Style {
+                                border: iced::Border {
+                                    color: theme.palette().background,
+                                    width: SIZE_TINY,
+                                    ..Default::default()
+                                },
+                                ..Default::default()
+                            }
+                        }),
+                    // Container to provide the border
+                    widget::container(None::<Element<'_, Message>>)
+                        .width(Length::Fill)
+                        .height(Length::Fill)
+                        .style(|theme: &Theme| widget::container::Style {
+                            border: iced::Border {
+                                color: theme.palette().text,
+                                width: SIZE_BORDER,
+                                ..Default::default()
+                            },
+                            ..Default::default()
+                        })
+                ))
                 .style(|theme: &Theme| widget::container::Style {
                     background: Some(theme.palette().background.into()),
-                    border: iced::Border {
-                        color: theme.palette().text,
-                        width: SIZE_BORDER,
-                        radius: 0.0.into(),
-                    },
                     ..Default::default()
-                }), //.padding(iced::Padding::new(SIZE_TINY)),
+                }),
             )
         };
         widget::container(widget::column![search_bar, results].spacing(SIZE_MEDIUM))
