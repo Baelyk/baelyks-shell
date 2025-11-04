@@ -1,11 +1,14 @@
 use chrono::Local;
 use iced::{
-    Element, Length, Subscription, Task, Theme,
+    Element, Length, Subscription, Task, Theme, border,
     widget::{self, Row, button, center_y, mouse_area, row, text},
     window,
 };
 use iced_layershell::{
-    Settings, daemon, reexport::Anchor, settings::LayerShellSettings, to_layer_message,
+    Settings, daemon,
+    reexport::Anchor,
+    settings::{LayerShellSettings, StartMode},
+    to_layer_message,
 };
 use log::{debug, trace, warn};
 
@@ -38,7 +41,8 @@ pub fn run() -> Result<(), iced_layershell::Error> {
                 anchor: Anchor::Top | Anchor::Left | Anchor::Right,
                 size: Some((0, HEIGHT)),
                 exclusive_zone: HEIGHT as i32,
-                start_mode: iced_layershell::settings::StartMode::AllScreens,
+                margin: (4, 4, 0, 4),
+                start_mode: StartMode::AllScreens,
                 ..Default::default()
             },
             default_font: iced::Font::with_name("JetBrainsMono Nerd Font"),
@@ -255,19 +259,31 @@ impl State {
     }
 
     fn view(&self, _: window::Id) -> Element<Message> {
-        let left = row![self.workspaces()];
+        let left = widget::container(row![self.workspaces()]).style(|theme: &Theme| {
+            widget::container::Style::from(theme.palette().background).border(border::rounded(
+                border::radius(6).top_left(HEIGHT as f32 / 2.0),
+            ))
+        });
 
-        let right = Row::new()
-            .spacing(SMALL)
-            .push(self.tray())
-            .push(self.system())
-            .push(self.input())
-            .push(self.volume())
-            .push(self.battery())
-            .push(self.clock());
+        let right = widget::container(
+            Row::new()
+                .spacing(SMALL)
+                .push(self.tray())
+                .push(self.system())
+                .push(self.input())
+                .push(self.volume())
+                .push(self.battery())
+                .push(self.clock()),
+        )
+        .padding([0.0, SMALL])
+        .style(|theme: &Theme| {
+            widget::container::Style::from(theme.palette().background).border(border::rounded(
+                border::radius(6).top_right(HEIGHT as f32 / 2.0),
+            ))
+        });
         let right = widget::right(right);
 
-        row![left, right].width(Length::Fill).into()
+        row![left, right].into()
     }
 
     fn update(&mut self, message: Message) -> Task<Message> {
@@ -389,7 +405,7 @@ impl State {
 
     fn style(&self, theme: &Theme) -> iced::theme::Style {
         iced::theme::Style {
-            background_color: theme.palette().background,
+            background_color: iced::Color::TRANSPARENT,
             text_color: theme.palette().text,
         }
     }
