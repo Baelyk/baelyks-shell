@@ -18,7 +18,10 @@ struct Args {
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let args = Args::parse();
 
-    baelyks_shell_lib::logging::setup_logger(args.log)?;
+    baelyks_shell_lib::logging::Logger::with_name(env!("CARGO_PKG_NAME"))
+        .version(env!("CARGO_PKG_VERSION"))
+        .level(args.log)
+        .setup()?;
 
     debug!("Command line arguments: {:#?}", args);
 
