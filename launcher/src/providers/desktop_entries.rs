@@ -35,8 +35,17 @@ impl Entry for DesktopEntry {
     }
 
     fn open(&self) -> Result<std::process::Command, Box<dyn std::error::Error>> {
-        let mut command = std::process::Command::new("sh");
-        command.arg("-c").args(self.parse_exec()?);
+        let mut command = if self.terminal() {
+            // TODO equivalent of sensible-terminal
+            let mut command = std::process::Command::new("wezterm");
+            command.arg("-e");
+            command
+        } else {
+            let mut command = std::process::Command::new("sh");
+            command.arg("-c");
+            command
+        };
+        command.args(self.parse_exec()?);
         Ok(command)
     }
 
