@@ -38,6 +38,7 @@
     bin = {
       name,
       path,
+      dbus ? null,
       wrapInputs ? [],
     }: (commonArgs
       // {
@@ -74,6 +75,15 @@
             echo "Wrapping bin..."
             wrapProgram $out/bin/${name} \
               --suffix PATH : ${nixpkgs.lib.makeBinPath wrapInputs}
+          ''
+          # DBUS Service file
+          + pkgs.lib.optionalString (dbus != null) ''
+            mkdir -p $out/share/dbus-1/services
+            cat <<END > $out/share/dbus-1/services/org.baelyk.${name}.service
+            [D-BUS Service]
+            Name=${dbus}
+            Exec=$out/bin/${name}
+            SystemdService=${name}.service
           '';
       });
   in {
@@ -92,6 +102,7 @@
       notifications = craneLib.buildPackage (bin {
         name = "baelyks-notification-daemon";
         path = ./notifications;
+        dbus = "org.freedesktop.Notifications";
       });
     };
 
