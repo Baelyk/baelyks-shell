@@ -2,7 +2,7 @@ use std::{os::unix::process::CommandExt, sync::Arc};
 
 use iced::{
     Element, Length, Subscription, Task, Theme,
-    keyboard::{key, on_key_release},
+    keyboard::{self, key},
     widget::{self},
 };
 use iced_layershell::{
@@ -225,10 +225,20 @@ impl State {
     fn subscription(&self) -> Subscription<Message> {
         let subscriptions = [
             Subscription::run(searcher::nucleo).map(Message::Searcher),
-            on_key_release(|key, _| match key {
-                key::Key::Named(key::Named::Escape) => Some(Message::RequestClose),
-                _ => None,
+            keyboard::listen().filter_map(|event| {
+                let keyboard::Event::KeyReleased { key, .. } = event else {
+                    return None;
+                };
+
+                match key {
+                    keyboard::Key::Named(key::Named::Escape) => Some(Message::RequestClose),
+                    _ => None,
+                }
             }),
+            //on_key_release(|key, _| match key {
+            //    key::Key::Named(key::Named::Escape) => Some(Message::RequestClose),
+            //    _ => None,
+            //}),
         ];
         Subscription::batch(subscriptions)
     }
