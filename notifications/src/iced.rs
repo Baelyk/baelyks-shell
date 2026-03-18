@@ -316,7 +316,7 @@ impl State {
                             settings: NewLayerShellSettings {
                                 anchor: Anchor::Top | Anchor::Right,
                                 size: Some((1, 1)),
-                                margin: Some((60, 20, 0, 0)),
+                                margin: Some((BIG as i32, BIG as i32, 0, 0)),
                                 ..Default::default()
                             },
                             id,
